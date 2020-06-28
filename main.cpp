@@ -4,7 +4,7 @@
 
 int main()
 {
-  auto csgo = csgoprs::csgoparser{"/path/to/log/dir"};
+  auto csgo = csgoprs::csgoparser{"/path/to/logs/dir"};
 
   csgo.track_stats();
 

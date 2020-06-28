@@ -13,3 +13,4 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
 target_compile_features(csgoparse PUBLIC cxx_std_17)
+#target_compile_options(csgoparse PRIVATE -Werror -Wall -Wextra -Wold-style-cast -Wpedantic)
