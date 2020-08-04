@@ -1,16 +1,50 @@
-cmake_minimum_required(VERSION 3.0.0)
-project(csgoparse VERSION 0.1.0)
+cmake_minimum_required(VERSION 3.15)
 
-include(CTest)
-enable_testing()
+# Set the project name to your project name, my project isn't very descriptive
+project(csgoparse CXX)
+include(cmake/StandardProjectSettings.cmake)
 
-include_directories(include)
+# Link this 'library' to set the c++ standard / compile-time options requested
+add_library(project_options INTERFACE)
+target_compile_features(project_options INTERFACE cxx_std_17)
 
-add_executable(csgoparse main.cpp)
+# Link this 'library' to use the warnings specified in CompilerWarnings.cmake
+add_library(project_warnings INTERFACE)
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+# standard compiler warnings
+include(cmake/CompilerWarnings.cmake)
+set_project_warnings(project_warnings)
 
-target_compile_features(csgoparse PUBLIC cxx_std_17)
-#target_compile_options(csgoparse PRIVATE -Werror -Wall -Wextra -Wold-style-cast -Wpedantic)
+# sanitizer options if supported by compiler
+include(cmake/Sanitizers.cmake)
+enable_sanitizers(project_options)
+
+# enable doxygen
+include(cmake/Doxygen.cmake)
+enable_doxygen()
+
+# allow for static analysis options
+include(cmake/StaticAnalyzers.cmake)
+
+option(BUILD_SHARED_LIBS "Enable compilation of shared libraries" OFF)
+option(ENABLE_TESTING "Enable Test Builds" ON)
+
+include(cmake/Conan.cmake)
+run_conan()
+
+if(ENABLE_TESTING)
+  enable_testing()
+  message(
+    "Building Tests. Be sure to check out test/constexpr_tests for constexpr testing"
+  )
+  add_subdirectory(test)
+endif()
+
+if(ENABLE_FUZZING)
+  message(
+    "Building Fuzz Tests, using fuzzing sanitizer https://www.llvm.org/docs/LibFuzzer.html"
+  )
+  add_subdirectory(fuzz_test)
+endif()
+
+add_subdirectory(src)
