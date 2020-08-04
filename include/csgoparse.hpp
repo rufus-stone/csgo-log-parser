@@ -13,6 +13,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include <filesystem>
+
 #include <optional>
 
 #include "json.hpp"
@@ -106,7 +108,7 @@ std::string csgoparser::csgo_distance_to_metres(std::size_t dist)
 
   std::ostringstream ss;
   ss << std::fixed << std::setprecision(2);
-  ss << (dist / 52.49343832);
+  ss << (static_cast<double>(dist) / 52.49343832);
 
   return ss.str();
 }
@@ -131,7 +133,7 @@ auto csgoparser::parse_base(const std::string &input)
 }
 
 
-auto csgoparser::parse_match_start(uint64_t epoch, const std::string &input) -> std::optional<json>
+auto csgoparser::parse_match_start([[maybe_unused]] uint64_t epoch, const std::string &input) -> std::optional<json>
 {
   auto event = json{};
 
@@ -152,7 +154,7 @@ auto csgoparser::parse_match_start(uint64_t epoch, const std::string &input) -> 
   return std::nullopt;
 }
 
-auto csgoparser::parse_switched_teams(uint64_t epoch, const std::string &input) -> std::optional<json>
+auto csgoparser::parse_switched_teams([[maybe_unused]] uint64_t epoch, const std::string &input) -> std::optional<json>
 {
   auto event = json{};
 
@@ -211,9 +213,9 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> st
     game_state["event_buffer"].push_back(event);
 
     // Now update all the buffered events with the game mode that was just played
-    for (auto &event : game_state["event_buffer"])
+    for (auto &buffered_event : game_state["event_buffer"])
     {
-      event["game_mode"] = game_mode;
+      buffered_event["game_mode"] = game_mode;
     }
 
     // Now add events for winning/losing for each player - ignore Armsrace games as these don't have a winning team and we can calculate Armsrace wins by the total 'knifegg' kills
@@ -285,7 +287,7 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> st
   }
 }
 
-auto csgoparser::parse_attack(uint64_t epoch, const std::string &input) -> std::optional<json>
+auto csgoparser::parse_attack([[maybe_unused]] uint64_t epoch, const std::string &input) -> std::optional<json>
 {
   auto event = json{};
 
@@ -424,7 +426,7 @@ void csgoparser::track_stats()
 {
   using namespace std::literals::chrono_literals;
 
-  int offset = 0;
+  std::streamoff offset = 0;
 
   while (true)
   {

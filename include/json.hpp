@@ -6364,7 +6364,7 @@ class binary_reader
             case 0x9B: // array (eight-byte uint64_t for n follow)
             {
                 std::uint64_t len;
-                return get_number(input_format_t::cbor, len) and get_cbor_array(static_cast<std::size_t>(len));
+                return get_number(input_format_t::cbor, len) and get_cbor_array(len);
             }
 
             case 0x9F: // array (indefinite length)
@@ -6418,7 +6418,7 @@ class binary_reader
             case 0xBB: // map (eight-byte uint64_t for n follow)
             {
                 std::uint64_t len;
-                return get_number(input_format_t::cbor, len) and get_cbor_object(static_cast<std::size_t>(len));
+                return get_number(input_format_t::cbor, len) and get_cbor_object(len);
             }
 
             case 0xBF: // map (indefinite length)
@@ -11436,7 +11436,7 @@ class json_pointer
     */
     BasicJsonType& get_and_create(BasicJsonType& j) const
     {
-        using size_type = typename BasicJsonType::size_type;
+        //using size_type = typename BasicJsonType::size_type;
         auto result = &j;
 
         // in case no reference tokens exist, return a reference to the JSON value
@@ -11509,7 +11509,7 @@ class json_pointer
     */
     BasicJsonType& get_unchecked(BasicJsonType* ptr) const
     {
-        using size_type = typename BasicJsonType::size_type;
+        //using size_type = typename BasicJsonType::size_type;
         for (const auto& reference_token : reference_tokens)
         {
             // convert null values to arrays or objects before continuing
@@ -11569,7 +11569,7 @@ class json_pointer
     */
     BasicJsonType& get_checked(BasicJsonType* ptr) const
     {
-        using size_type = typename BasicJsonType::size_type;
+        //using size_type = typename BasicJsonType::size_type;
         for (const auto& reference_token : reference_tokens)
         {
             switch (ptr->type())
@@ -11619,7 +11619,7 @@ class json_pointer
     */
     const BasicJsonType& get_unchecked(const BasicJsonType* ptr) const
     {
-        using size_type = typename BasicJsonType::size_type;
+        //using size_type = typename BasicJsonType::size_type;
         for (const auto& reference_token : reference_tokens)
         {
             switch (ptr->type())
@@ -11662,7 +11662,7 @@ class json_pointer
     */
     const BasicJsonType& get_checked(const BasicJsonType* ptr) const
     {
-        using size_type = typename BasicJsonType::size_type;
+        //using size_type = typename BasicJsonType::size_type;
         for (const auto& reference_token : reference_tokens)
         {
             switch (ptr->type())
@@ -11703,7 +11703,7 @@ class json_pointer
     */
     bool contains(const BasicJsonType* ptr) const
     {
-        using size_type = typename BasicJsonType::size_type;
+        //using size_type = typename BasicJsonType::size_type;
         for (const auto& reference_token : reference_tokens)
         {
             switch (ptr->type())

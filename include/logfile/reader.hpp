@@ -78,7 +78,7 @@ auto reader::get_latest_bundle(std::streamoff start_position) -> bundle
 
   auto logfile = std::ifstream{this->log_path, std::ios::binary};
 
-  int file_length = 0;
+  std::size_t file_length = 0;
   std::streamoff pos;
 
   auto line = std::string{};
@@ -96,7 +96,7 @@ auto reader::get_latest_bundle(std::streamoff start_position) -> bundle
     file_length = std::filesystem::file_size(this->log_path);
 
     // Double check nothing funky has happened to the file size
-    if (start_position > file_length)
+    if (start_position > static_cast<std::streamoff>(file_length))
     {
       std::cerr << "Start position " << start_position << " is greater than file size " << file_length << " !!\n";
       std::exit(EXIT_FAILURE);
