@@ -9,13 +9,16 @@ static constexpr auto USAGE =
     R"(CS:GO Server Log Parser.
 
   Usage:
-    csgoparse --log_dir <path>
-        
+    csgoparse [options]
+
   Options:
-    -h --help     Show this screen.
-    -v --version  Show version.
-    -d --log_dir  Path to the directory containing the CS:GO game logs (probably <CS:GO install dir>/server/log).
+    -h --help                    Show this screen.
+    -v --version                 Show version.
+    -d <path>, --log_dir <path>  Path to the directory containing the CS:GO game logs (probably <CS:GO install dir>/server/logs).
+    -t, --test                   Perform a dry run to test log parsing, without dispatching any events to, e.g. elasticsearch
 )";
+
+
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] const char **argv)
 {
@@ -24,12 +27,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] const char **argv)
                              true,                    // show help if requested
                              "CS:GO Log Parser 1.0"); // version string
 
-  for (auto const &arg : args)
-  {
-    spdlog::info("{} == {}", arg.first, arg.second.asString());
-  }
 
-  auto csgo = csgoprs::csgoparser{"/path/to/logs/dir"};
+  const auto log_dir = args["--log_dir"].asString();
+  spdlog::info("Log directory: {}", log_dir);
+
+  auto csgo = csgoprs::csgoparser{log_dir};
 
   csgo.track_stats();
 

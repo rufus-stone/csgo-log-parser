@@ -9,6 +9,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <spdlog/spdlog.h>
+
 namespace csgoprs::logs
 {
 
@@ -37,14 +39,14 @@ reader::reader(const std::filesystem::path &log_dir) : log_dir_path(log_dir)
   // Does the path actually exist/can we see it?
   if (!std::filesystem::exists(log_dir_path))
   {
-    std::cerr << "Couldn't find " << log_dir_path << " !!\n";
+    spdlog::error("Couldn't find log directory: {}", log_dir_path.string());
     return;
   }
 
   // Is it actually a directory?
   if (!std::filesystem::is_directory(log_dir_path))
   {
-    std::cerr << log_dir_path << " is not a directory !!\n";
+    spdlog::error("{} is not a directory", log_dir_path.string());
     return;
   }
 
@@ -61,13 +63,13 @@ reader::reader(const std::filesystem::path &log_dir) : log_dir_path(log_dir)
   // Did we find any files?
   if (files.empty())
   {
-    std::cerr << log_dir_path << " does not contain any regular files !!\n";
+    spdlog::error("{} does not contain any regular files", log_dir_path.string());
     return;
   }
 
   // Sort the files by name descending in order to find the most recent log file (CS:GO log files include the date at the start of the filename)
   std::sort(std::begin(files), std::end(files), std::greater<>());
-  std::cout << files[0] << '\n';
+  spdlog::info("Most recent log file: {} ", files[0].string());
   
   this->log_path = files[0];
 }
@@ -98,7 +100,7 @@ auto reader::get_latest_bundle(std::streamoff start_position) -> bundle
     // Double check nothing funky has happened to the file size
     if (start_position > static_cast<std::streamoff>(file_length))
     {
-      std::cerr << "Start position " << start_position << " is greater than file size " << file_length << " !!\n";
+      spdlog::error("Start position {} is greater than file size {}", start_position, file_length);
       std::exit(EXIT_FAILURE);
     }
 
