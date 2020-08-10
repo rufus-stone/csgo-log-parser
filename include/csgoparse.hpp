@@ -17,6 +17,8 @@
 
 #include <optional>
 
+#include <spdlog/spdlog.h>
+
 #include "json.hpp"
 #include "logfile/reader.hpp"
 
@@ -346,8 +348,6 @@ auto csgoparser::parse_event(const std::string &input)
     if (game_over.has_value())
     {
       auto event = game_over.value();
-
-      //for (const auto &e : event) std::cerr << e << '\n';
       return event;
     }
 
@@ -438,13 +438,18 @@ void csgoparser::track_stats()
       {
         auto e = this->parse_event(line);
 
+        if (e.is_null())
+        {
+          spdlog::info(e.dump());
+        }
+
         // This is where we'll need to yield the events if possible
       }
     }
 
     offset = pos;
 
-    std::cerr << "All caught up...\n";
+    spdlog::info("All caught up...");
     std::exit(EXIT_SUCCESS);
     // Wait for a few seconds to avoid hammering the CPU
     std::this_thread::sleep_for(3s);
