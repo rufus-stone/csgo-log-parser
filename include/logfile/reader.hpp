@@ -9,6 +9,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <optional>
+
 #include <spdlog/spdlog.h>
 
 namespace csgoprs::logs
@@ -23,7 +25,6 @@ struct bundle
 class reader
 {
 private:
-  std::filesystem::path log_dir_path;
   std::filesystem::path log_path;
 
 public:
@@ -34,25 +35,25 @@ public:
   auto get_latest_bundle(std::streamoff offset) -> bundle;
 };
 
-reader::reader(const std::filesystem::path &log_dir) : log_dir_path(log_dir)
+reader::reader(const std::filesystem::path &log_dir)
 {
   // Does the path actually exist/can we see it?
-  if (!std::filesystem::exists(log_dir_path))
+  if (!std::filesystem::exists(log_dir))
   {
-    spdlog::error("Couldn't find log directory: {}", log_dir_path.string());
+    spdlog::error("Couldn't find log directory: {}", log_dir.string());
     return;
   }
 
   // Is it actually a directory?
-  if (!std::filesystem::is_directory(log_dir_path))
+  if (!std::filesystem::is_directory(log_dir))
   {
-    spdlog::error("{} is not a directory", log_dir_path.string());
+    spdlog::error("{} is not a directory", log_dir.string());
     return;
   }
 
-  // List the files in the directory
+  // List all the regular files in the directory
   auto files = std::vector<std::filesystem::path>{};
-  for (const auto &entry : std::filesystem::directory_iterator(log_dir_path))
+  for (const auto &entry : std::filesystem::directory_iterator(log_dir))
   {
     if (std::filesystem::is_regular_file(entry))
     {
@@ -63,14 +64,14 @@ reader::reader(const std::filesystem::path &log_dir) : log_dir_path(log_dir)
   // Did we find any files?
   if (files.empty())
   {
-    spdlog::error("{} does not contain any regular files", log_dir_path.string());
+    spdlog::error("{} does not contain any regular files", log_dir.string());
     return;
   }
 
   // Sort the files by name descending in order to find the most recent log file (CS:GO log files include the date at the start of the filename)
   std::sort(std::begin(files), std::end(files), std::greater<>());
   spdlog::info("Most recent log file: {} ", files[0].string());
-  
+
   this->log_path = files[0];
 }
 

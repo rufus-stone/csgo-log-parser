@@ -1,50 +1,49 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.15...3.18)
 
-# Set the project name to your project name, my project isn't very descriptive
-project(csgoparse CXX)
-include(cmake/StandardProjectSettings.cmake)
+# Set up our project
+project(
+  csgoparse
+  VERSION 0.1.0
+  DESCRIPTION "A log parser for CS:GO server logs"
+  HOMEPAGE_URL "https://github.com/rufus-stone/csgo-log-parser"
+  LANGUAGES CXX)
 
-# Link this 'library' to set the c++ standard / compile-time options requested
-add_library(project_options INTERFACE)
-target_compile_features(project_options INTERFACE cxx_std_17)
+# Create our executable
+add_executable(${PROJECT_NAME} src/main.cpp)
 
-# Link this 'library' to use the warnings specified in CompilerWarnings.cmake
-add_library(project_warnings INTERFACE)
+# Disallow in-source builds
+include(cmake/PreventInSourceBuilds.cmake)
 
-# standard compiler warnings
+# Enable cache system
+include(cmake/Cache.cmake)
+
+# We're using C++17
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+
+# Set our compiler warnings
 include(cmake/CompilerWarnings.cmake)
-set_project_warnings(project_warnings)
+set_project_warnings(${PROJECT_NAME})
 
-# sanitizer options if supported by compiler
+# Enable sanitizers if supported by compiler
 include(cmake/Sanitizers.cmake)
-enable_sanitizers(project_options)
+enable_sanitizers(${PROJECT_NAME})
 
-# enable doxygen
-include(cmake/Doxygen.cmake)
-enable_doxygen()
-
-# allow for static analysis options
+# Allow for static analysis options
 include(cmake/StaticAnalyzers.cmake)
 
-option(BUILD_SHARED_LIBS "Enable compilation of shared libraries" OFF)
-option(ENABLE_TESTING "Enable Test Builds" ON)
+# Find the PlatformFolders library
+find_package(platform_folders REQUIRED)
 
+# Get Conan up and running
 include(cmake/Conan.cmake)
 run_conan()
 
-if(ENABLE_TESTING)
-  enable_testing()
-  message(
-    "Building Tests. Be sure to check out test/constexpr_tests for constexpr testing"
-  )
-  add_subdirectory(test)
-endif()
+# Add the include directory to the target
+target_include_directories(
+  ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include
+                          ${PROJECT_SOURCE_DIR}/external)
 
-if(ENABLE_FUZZING)
-  message(
-    "Building Fuzz Tests, using fuzzing sanitizer https://www.llvm.org/docs/LibFuzzer.html"
-  )
-  add_subdirectory(fuzz_test)
-endif()
-
-add_subdirectory(src)
+# Link libraries to executable
+target_link_libraries(
+  ${PROJECT_NAME} PRIVATE CONAN_PKG::docopt.cpp CONAN_PKG::fmt
+                          CONAN_PKG::spdlog sago::platform_folders)
