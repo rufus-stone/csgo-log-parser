@@ -14,20 +14,17 @@
 #include <iomanip>
 
 #include <filesystem>
-
 #include <optional>
 
 #include <spdlog/spdlog.h>
 
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 #include "logfile/reader.hpp"
 
 namespace csgoprs
 {
 
 using namespace std::string_literals;
-
-//using json = nlohmann::json;
 
 // Build regex like this: std::regex{R"###(actual regex goes here)###", std::regex::optimize};
 static const auto base_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): (.+)$)###", std::regex::optimize};
@@ -59,12 +56,13 @@ class csgoparser
 {
 private:
   csgoprs::logs::reader log_reader;
+  bool simulate;
 
 public:
   json game_state;
 
   csgoparser() = delete;
-  csgoparser(const std::filesystem::path &log_dir);
+  csgoparser(const std::filesystem::path &log_dir, bool simulate = false);
   ~csgoparser() = default;
 
   uint64_t csgo_dtg_to_epoch_millis(std::string_view dtg);
@@ -87,7 +85,7 @@ public:
   auto parse_chicken(uint64_t epoch, const std::string &input) -> std::optional<json>;
 };
 
-csgoparser::csgoparser(const std::filesystem::path &log_dir) : log_reader(log_dir), game_state(json{}) {}
+csgoparser::csgoparser(const std::filesystem::path &log_dir, bool test_run) : log_reader(log_dir), game_state(json{}), simulate(simulate) {}
 
 ////////////////////////////////////////////////////////////////
 uint64_t csgoparser::csgo_dtg_to_epoch_millis(std::string_view dtg)
@@ -119,8 +117,7 @@ std::string csgoparser::csgo_distance_to_metres(std::size_t dist)
 
 auto csgoparser::parse_base(const std::string &input)
 {
-  auto base_m = std::smatch{};
-  if (std::regex_match(input, base_m, base_rgx))
+  if (auto base_m = std::smatch{}; std::regex_match(input, base_m, base_rgx))
   {
     auto timestamp = base_m[1].str();
     auto msg = base_m[2].str();
@@ -139,8 +136,7 @@ auto csgoparser::parse_match_start([[maybe_unused]] uint64_t epoch, const std::s
 {
   auto event = json{};
 
-  auto match_start_m = std::smatch{};
-  if (std::regex_match(input, match_start_m, match_start_rgx))
+  if (auto match_start_m = std::smatch{}; std::regex_match(input, match_start_m, match_start_rgx))
   {
     // Update the game state object
     game_state["game_map"] = match_start_m[1];
@@ -160,8 +156,7 @@ auto csgoparser::parse_switched_teams([[maybe_unused]] uint64_t epoch, const std
 {
   auto event = json{};
 
-  auto match = std::smatch{};
-  if (std::regex_match(input, match, switched_team_rgx))
+  if (auto match = std::smatch{}; std::regex_match(input, match, switched_team_rgx))
   {
     auto player = match[1].str();
     auto player_id = match[2].str();
@@ -193,10 +188,7 @@ auto csgoparser::parse_switched_teams([[maybe_unused]] uint64_t epoch, const std
 
 auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> std::optional<json>
 {
-  auto event = json{};
-
-  auto match = std::smatch{};
-  if (std::regex_match(input, match, game_over_rgx))
+  if (auto match = std::smatch{}; std::regex_match(input, match, game_over_rgx))
   {
     auto game_mode = match[1].str();
     auto ct_score = match[2].str();
@@ -205,7 +197,7 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> st
 
     game_state["game_mode"] = game_mode;
 
-    event = {
+    json event = {
       {"event_type", "game_over"},
       {"timestamp", epoch},
       {"game_map", game_state["game_map"]},
@@ -293,8 +285,7 @@ auto csgoparser::parse_attack([[maybe_unused]] uint64_t epoch, const std::string
 {
   auto event = json{};
 
-  auto match = std::smatch{};
-  if (std::regex_match(input, match, attack_rgx))
+  if (auto match = std::smatch{}; std::regex_match(input, match, attack_rgx))
   {
     auto player = match[1].str();
     auto player_id = match[2].str();
@@ -436,11 +427,11 @@ void csgoparser::track_stats()
     {
       for (const auto &line : lines)
       {
-        auto e = this->parse_event(line);
+        auto event_json = this->parse_event(line);
 
-        if (e.is_null())
+        if (!event_json.is_null())
         {
-          spdlog::info(e.dump());
+          spdlog::info(event_json.dump());
         }
 
         // This is where we'll need to yield the events if possible
@@ -451,6 +442,7 @@ void csgoparser::track_stats()
 
     spdlog::info("All caught up...");
     std::exit(EXIT_SUCCESS);
+
     // Wait for a few seconds to avoid hammering the CPU
     std::this_thread::sleep_for(3s);
   }
