@@ -20,11 +20,12 @@ namespace csgoprs::cfg
 
 using namespace std::string_view_literals;
 
-// TODO: Fill this out with a sane default config
-constexpr auto default_config = "ddasdf"sv;
+// A barebones default config that will need filling out with the path to the directory where the CS:GO server logs are located
+constexpr auto default_config = R"###({"log_dir":null, "steam_id_translation":{"active":false, "translations":[{"STEAM_1:0:12345678":"Player 1"}, {"STEAM_1:1:87654321":"Player 2"}]}})###"sv;
+//constexpr auto default_config = R"###({"log_dir":null})###"sv;
 
-
-auto find_config_file = [](const std::filesystem::path &custom_path = std::filesystem::path{}) -> std::filesystem::path
+////////////////////////////////////////////////////////////////
+auto locate_config(const std::filesystem::path &custom_path = std::filesystem::path{}) -> std::filesystem::path
 {
   auto config_path = std::filesystem::path{};
 
@@ -65,19 +66,23 @@ auto find_config_file = [](const std::filesystem::path &custom_path = std::files
     }
 
     // Write the default config to file
+    auto const default_config_json = json::parse(default_config);
     auto config_file = std::ofstream{config_path};
-    config_file << default_config;
+    config_file << default_config_json.dump(2);
     config_file.close();
   }
 
   return config_path;
-};
+}
 
 
-using json = nlohmann::json;
-
-auto read_config(std::filesystem::path path) -> json
+////////////////////////////////////////////////////////////////
+auto load_config(const std::filesystem::path &custom_path = std::filesystem::path{}) -> json
 {
+  auto const path = locate_config(custom_path);
+
+  using json = nlohmann::json;
+
   // Does the path actually exist/can we see it?
   if (!std::filesystem::exists(path) || !std::filesystem::is_regular_file(path))
   {
@@ -87,15 +92,26 @@ auto read_config(std::filesystem::path path) -> json
 
   // Open the config file
   auto config = std::ifstream{path};
-
-  auto config_json = json::parse(config);
-
-  if (config.is_open())
+  
+  try
   {
-    spdlog::info("File still open!");
-  }
+    auto const config_json = json::parse(config);
 
-  return config_json;
+    // Just in case we need to tidy up
+    if (config.is_open())
+    {
+      config.close();
+    }
+
+    spdlog::info("Loaded config:\n{}", config_json.dump(2));
+
+    return config_json;
+
+  } catch (nlohmann::detail::parse_error const &e)
+  {
+    spdlog::error("Failed to parse config JSON! : {}", e.what());
+    return json{};
+  }
 }
 
 } // namespace csgoprs::cfg

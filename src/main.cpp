@@ -15,44 +15,56 @@ static constexpr auto usage =
   Options:
     -h --help                   Show this screen.
     -v --version                Show version.
-    -d <path>, --log_dir <path> Path to the directory containing the CS:GO game logs (probably <CS:GO install dir>/server/logs).
+    -d <path>, --log_dir <path> Path to the directory containing the CS:GO game logs. This will override the path specified (if any) in the config.json.
+    -c <path>, --config <path>  Path to your config.json config file. This will override the default location.
     -t, --test                  Perform a dry run to test log parsing, without dispatching any events to, e.g. elasticsearch
-    -c <path>, --config <path>  Path to your csgoparse.json config file
 )";
 
 
-int main(int argc, const char **argv)
+int main(int argc, char const **argv)
 {
   auto args = docopt::docopt(usage, {std::next(argv), std::next(argv, argc)},
     true, // show help if requested
-    "CS:GO Log Parser 1.0"); // version string
+    "csgoparse 1.0"); // version string
 
 
+  // Optional custom config path
   auto custom_config_path = std::filesystem::path{};
-  // A path to the log directory is required (for now)
   if (args["--config"].isString())
   {
     custom_config_path = args["--config"].asString();
     spdlog::info("Custom config file path: {}", custom_config_path.string());
   }
 
-  auto const config_path = csgoprs::cfg::find_config_file(custom_config_path);
+  // Load the config JSON from file
+  auto const config_json = csgoprs::cfg::load_config(custom_config_path);
 
-  // A path to the log directory is required (for now)
-  if (!args["--log_dir"].isString())
+  // Determine where to look for the server logs
+  // If specified on the command line, override the path to the log directory
+  auto log_dir_path = std::filesystem::path{};
+  if (args["--log_dir"].isString())
   {
-    spdlog::error("Must specify a path to the log directory");
+    auto const log_dir = args["--log_dir"].asString();
+    log_dir_path = std::filesystem::path{log_dir};
+
+    spdlog::info("Overriding log dir path - looking in: {}", log_dir_path.string());
+
+    // Otherwise go with whatever is in the config
+  } else if (config_json["log_dir"].is_string()) //!config_json["log_dir"].is_null()
+  {
+    log_dir_path = std::filesystem::path{config_json["log_dir"].get<std::string>()};
+
+    spdlog::info("Using log dir path from config - looking in: {}", log_dir_path.string());
+  } else
+  {
+    spdlog::error("No valid log dir path specified in config, or provided via command line argument!");
     return EXIT_FAILURE;
   }
-
-  // Where are the logs stored?
-  auto const log_dir = args["--log_dir"].asString();
-  spdlog::info("Log directory: {}", log_dir);
 
   // Is this a test run?
   auto const test_run = args["--test"].asBool();
 
-  auto csgo = csgoprs::csgoparser{log_dir, test_run};
+  auto csgo = csgoprs::csgoparser{log_dir_path, test_run};
 
   csgo.track_stats();
 
