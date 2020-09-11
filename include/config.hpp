@@ -21,8 +21,8 @@ namespace csgoprs::cfg
 using namespace std::string_view_literals;
 
 // A barebones default config that will need filling out with the path to the directory where the CS:GO server logs are located
-constexpr auto default_config = R"###({"log_dir":null, "steam_id_translation":{"active":false, "translations":[{"STEAM_1:0:12345678":"Player 1"}, {"STEAM_1:1:87654321":"Player 2"}]}})###"sv;
-//constexpr auto default_config = R"###({"log_dir":null})###"sv;
+//constexpr auto default_config = R"###({"log_dir":null, "steam_id_translation":{"active":false, "translations":[{"STEAM_1:0:12345678":"Player 1"}, {"STEAM_1:1:87654321":"Player 2"}]}})###"sv;
+constexpr auto default_config = R"###({"log_dir":null})###"sv;
 
 ////////////////////////////////////////////////////////////////
 auto locate_config(const std::filesystem::path &custom_path = std::filesystem::path{}) -> std::filesystem::path
@@ -103,7 +103,7 @@ auto load_config(const std::filesystem::path &custom_path = std::filesystem::pat
       config.close();
     }
 
-    spdlog::info("Loaded config:\n{}", config_json.dump(2));
+    spdlog::info("Loaded config from file:\n{}", config_json.dump(2));
 
     return config_json;
 

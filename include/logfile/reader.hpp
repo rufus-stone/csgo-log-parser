@@ -32,7 +32,7 @@ public:
   reader(const std::filesystem::path &log_dir);
   ~reader() = default;
 
-  auto get_latest_bundle(std::streamoff offset) -> bundle;
+  auto get_latest_bundle(std::streamoff offset) const -> bundle;
 };
 
 reader::reader(const std::filesystem::path &log_dir)
@@ -75,7 +75,7 @@ reader::reader(const std::filesystem::path &log_dir)
   this->log_path = files[0];
 }
 
-auto reader::get_latest_bundle(std::streamoff start_position) -> bundle
+auto reader::get_latest_bundle(std::streamoff start_position) const -> bundle
 {
   using namespace std::chrono_literals;
 

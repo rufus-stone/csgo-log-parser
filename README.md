@@ -28,14 +28,10 @@ Because CS:GO server logs use a player's Steam ID as a unique identifier to diff
   "log_dir": "/home/somebody/csgo/server/logs",
   "steam_id_translation": {
     "active": true,
-    "translations": [
-      {
-        "STEAM_1:0:12345678": "Alice"
-      },
-      {
-        "STEAM_1:1:87654321": "Bob"
-      }
-    ]
+    "translations": {
+      "STEAM_1:0:12345678": "Alice",
+      "STEAM_1:1:87654321": "Bob"
+    }
   }
 }
 ```
