@@ -47,28 +47,28 @@ static const auto hostage_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)>
 static const auto chicken_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" .+? killed other "chicken.+? with "([^"]+)")###", std::regex::optimize};
 
 
-using event_t = std::map<std::string, std::string>;
-using player_t = std::pair<std::string, std::string>;
-
 using json = nlohmann::json;
 
 class csgoparser
 {
 private:
-  csgoprs::logs::reader log_reader;
-  bool simulate;
+  const json config;
+  const csgoprs::logs::reader log_reader;
+  const bool simulate;
 
 public:
   json game_state;
 
   csgoparser() = delete;
-  csgoparser(const std::filesystem::path &log_dir, bool simulate = false);
+  csgoparser(const json &cfg);
   ~csgoparser() = default;
 
-  uint64_t csgo_dtg_to_epoch_millis(std::string_view dtg);
-  std::string csgo_distance_to_metres(std::size_t dist);
+  auto csgo_dtg_to_epoch_millis(std::string_view dtg) -> uint64_t;
+  auto csgo_distance_to_metres(std::size_t dist) -> std::string;
+  auto csgo_distance_between_points(std::string_view p_pos, std::string_view v_pos) -> std::string;
+  auto translate_steam_id(const std::string &input) -> std::string;
 
-  auto parse_event(const std::string &input);
+  auto parse_event(const std::string &input) -> json;
   void track_stats();
 
   auto parse_base(const std::string &input);
@@ -85,22 +85,27 @@ public:
   auto parse_chicken(uint64_t epoch, const std::string &input) -> std::optional<json>;
 };
 
-csgoparser::csgoparser(const std::filesystem::path &log_dir, bool test_run) : log_reader(log_dir), game_state(json{}), simulate(simulate) {}
+////////////////////////////////////////////////////////////////
+csgoparser::csgoparser(const json &cfg) : config(cfg), log_reader(config["log_dir"].get<std::string>()), game_state(json{}), simulate(config["simulate"].get<bool>())
+{
+  spdlog::info("Active config:\n{}", config.dump(2));
+}
+
 
 ////////////////////////////////////////////////////////////////
-uint64_t csgoparser::csgo_dtg_to_epoch_millis(std::string_view dtg)
+auto csgoparser::csgo_dtg_to_epoch_millis(std::string_view dtg) -> uint64_t
 {
   auto tmt = tm{};
   strptime(dtg.data(), "%m/%d/%Y - %H:%M:%S", &tmt);
 
-  auto epoch_secs = static_cast<uint64_t>(mktime(&tmt));
+  const auto epoch_secs = static_cast<uint64_t>(mktime(&tmt));
 
   return epoch_secs * 1000;
 }
 
 
 ////////////////////////////////////////////////////////////////
-std::string csgoparser::csgo_distance_to_metres(std::size_t dist)
+auto csgoparser::csgo_distance_to_metres(std::size_t dist) -> std::string
 {
   // According to the Source SDK (https://developer.valvesoftware.com/wiki/Dimensions), in-game distances are
   // measured at 16 grid points per foot. This is equivalent to 16 points per 0.3048 metres, or 52.49343832 points per metre
@@ -114,15 +119,47 @@ std::string csgoparser::csgo_distance_to_metres(std::size_t dist)
 }
 
 
+////////////////////////////////////////////////////////////////
+auto csgoparser::csgo_distance_between_points(std::string_view p_pos, std::string_view v_pos) -> std::string
+{
+  auto output = std::string{};
 
+  // distance.euclidean(p_pos, v_pos)
+
+  return output;
+}
+
+
+////////////////////////////////////////////////////////////////
+auto csgoparser::translate_steam_id(const std::string &input) -> std::string
+{
+  if (this->config["steam_id_translation"]["active"])
+  {
+    if (this->config["steam_id_translation"]["translations"].contains(input))
+    {
+      const auto output = this->config["steam_id_translation"]["translations"][input].get<std::string>();
+      return output;
+    } else
+    {
+      return input;
+    }
+    
+  } else
+  {
+    return input;
+  }
+}
+
+
+////////////////////////////////////////////////////////////////
 auto csgoparser::parse_base(const std::string &input)
 {
   if (auto base_m = std::smatch{}; std::regex_match(input, base_m, base_rgx))
   {
-    auto timestamp = base_m[1].str();
-    auto msg = base_m[2].str();
+    const auto timestamp = base_m[1].str();
+    const auto msg = base_m[2].str();
 
-    auto epoch = csgo_dtg_to_epoch_millis(timestamp);
+    const auto epoch = csgo_dtg_to_epoch_millis(timestamp);
 
     return std::make_optional(std::make_tuple(epoch, msg));
   } else
@@ -132,6 +169,7 @@ auto csgoparser::parse_base(const std::string &input)
 }
 
 
+////////////////////////////////////////////////////////////////
 auto csgoparser::parse_match_start([[maybe_unused]] uint64_t epoch, const std::string &input) -> std::optional<json>
 {
   auto event = json{};
@@ -152,6 +190,8 @@ auto csgoparser::parse_match_start([[maybe_unused]] uint64_t epoch, const std::s
   return std::nullopt;
 }
 
+
+////////////////////////////////////////////////////////////////
 auto csgoparser::parse_switched_teams([[maybe_unused]] uint64_t epoch, const std::string &input) -> std::optional<json>
 {
   auto event = json{};
@@ -162,11 +202,11 @@ auto csgoparser::parse_switched_teams([[maybe_unused]] uint64_t epoch, const std
     auto player_id = match[2].str();
     auto player_team = match[3].str();
 
-    auto player_json = json{{"player", player}, {"player_id", player_id}};
+    const auto player_json = json{{"player", player}, {"player_id", player_id}};
 
     // Make sure to remove them from their old team if necessary
-    auto other_team = player_team == "CT"s ? "TERRORIST"s : "CT"s;
-    auto pos = std::find_if(std::begin(game_state["teams"][other_team]), std::end(game_state["teams"][other_team]), [&player_json](const auto &entry)
+    const auto other_team = player_team == "CT"s ? "TERRORIST"s : "CT"s;
+    const auto pos = std::find_if(std::begin(game_state["teams"][other_team]), std::end(game_state["teams"][other_team]), [&player_json](const auto &entry)
     {
       return entry.is_object() && entry == player_json;
     });
@@ -186,14 +226,16 @@ auto csgoparser::parse_switched_teams([[maybe_unused]] uint64_t epoch, const std
   }
 }
 
+
+////////////////////////////////////////////////////////////////
 auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> std::optional<json>
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, game_over_rgx))
   {
-    auto game_mode = match[1].str();
-    auto ct_score = match[2].str();
-    auto terrorist_score = match[3].str();
-    auto duration = match[4].str();
+    const auto game_mode = match[1].str();
+    const auto ct_score = match[2].str();
+    const auto terrorist_score = match[3].str();
+    const auto duration = match[4].str();
 
     game_state["game_mode"] = game_mode;
 
@@ -237,8 +279,8 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> st
         }
       } else
       {
-        auto winning_team = (std::stoi(ct_score) > std::stoi(terrorist_score)) ? "CT"s : "TERRORIST"s;
-        auto losing_team = (std::stoi(ct_score) > std::stoi(terrorist_score)) ? "TERRORIST"s : "CT"s;
+        const auto winning_team = (std::stoi(ct_score) > std::stoi(terrorist_score)) ? "CT"s : "TERRORIST"s;
+        const auto losing_team = (std::stoi(ct_score) > std::stoi(terrorist_score)) ? "TERRORIST"s : "CT"s;
 
         // Add the winners
         for (const auto &player : game_state["teams"][winning_team])
@@ -281,10 +323,10 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> st
   }
 }
 
-auto csgoparser::parse_attack([[maybe_unused]] uint64_t epoch, const std::string &input) -> std::optional<json>
-{
-  auto event = json{};
 
+////////////////////////////////////////////////////////////////
+auto csgoparser::parse_attack(uint64_t epoch, const std::string &input) -> std::optional<json>
+{
   if (auto match = std::smatch{}; std::regex_match(input, match, attack_rgx))
   {
     auto player = match[1].str();
@@ -302,7 +344,38 @@ auto csgoparser::parse_attack([[maybe_unused]] uint64_t epoch, const std::string
     auto armor_remaining = match[13].str();
     auto hitgroup = match[14].str();
 
-    return std::make_optional(event);
+
+    json event = {
+      {"event_type", "attack"},
+      {"timestamp", epoch},
+      {"player", player},
+      {"player_id", player_id},
+      {"player_team", player_team},
+      {"player_position", "TODO"}, // maputils.project_coordinates(pos=np.asarray(p_pos[:2]), game_map=game.map)
+      {"victim", victim},
+      {"victim_id", victim_id},
+      {"victim_team", victim_team},
+      {"victim_position", "TODO"}, // maputils.project_coordinates(pos=np.asarray(v_pos[:2]), game_map=game.map)
+      {"distance", csgo_distance_between_points(player_pos, victim_pos)},
+      {"weapon", weapon},
+      {"damage_health", damage_health},
+      {"damage_armor", damage_armor},
+      {"health_remaining", health_remaining},
+      {"armor_remaining", armor_remaining},
+      {"bodypart_hit", hitgroup},
+      {"game_map", game_state["game_map"]}
+    };
+
+    // Was it self-inflicted?
+    if (player_id == victim_id)
+    {
+      event["self_inflicted"] = "true";
+    }
+
+    // Add event to the event buffer
+    this->game_state["event_buffer"].push_back(event);
+
+    return std::nullopt; //std::make_optional(event);
   } else
   {
     return std::nullopt;
@@ -311,12 +384,12 @@ auto csgoparser::parse_attack([[maybe_unused]] uint64_t epoch, const std::string
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_event(const std::string &input)
+auto csgoparser::parse_event(const std::string &input) -> json
 {
   auto base = parse_base(input);
   if (base.has_value())
   {
-    auto [epoch, msg] = base.value();
+    const auto [epoch, msg] = base.value();
 
     // Match start - use this to set the current game map
     auto match_start = parse_match_start(epoch, msg);
@@ -421,7 +494,7 @@ void csgoparser::track_stats()
 
   while (true)
   {
-    auto [lines, pos] = this->log_reader.get_latest_bundle(offset);
+    const auto [lines, pos] = this->log_reader.get_latest_bundle(offset);
 
     if (!lines.empty())
     {
@@ -429,12 +502,34 @@ void csgoparser::track_stats()
       {
         auto event_json = this->parse_event(line);
 
-        if (!event_json.is_null())
+        // We might get one or more events back
+        if (event_json.is_array())
         {
-          spdlog::info(event_json.dump());
-        }
+          for (auto &event : event_json)
+          {
+            if (!event.is_null())
+            {
+              // Perform Steam ID translations
+              if (event.contains("player_id"))
+              {
+                event["player_id"] = this->translate_steam_id(event["player_id"].get<std::string>());
+              }
 
-        // This is where we'll need to yield the events if possible
+              if (event.contains("victim_id"))
+              {
+                event["victim_id"] = this->translate_steam_id(event["victim_id"].get<std::string>());
+              }
+
+              spdlog::info(event.dump());
+              
+              // This is where we'll need to dispatch the events if possible
+            }
+          }
+        } else if (!event_json.is_null())
+        {
+          spdlog::warn("Single event! : {}", event_json.dump());
+          std::exit(EXIT_FAILURE);
+        }
       }
     }
 
