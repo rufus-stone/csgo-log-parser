@@ -7,6 +7,7 @@
 #include <string_view>
 #include <vector>
 #include <map>
+#include <cmath>
 
 #include <regex>
 #include <ctime>
@@ -17,6 +18,7 @@
 #include <optional>
 
 #include <spdlog/spdlog.h>
+#include <hamarr/format.hpp>
 
 #include "nlohmann/json.hpp"
 #include "logfile/reader.hpp"
@@ -122,11 +124,27 @@ auto csgoparser::csgo_distance_to_metres(std::size_t dist) -> std::string
 ////////////////////////////////////////////////////////////////
 auto csgoparser::csgo_distance_between_points(std::string_view p_pos, std::string_view v_pos) -> std::string
 {
-  auto output = std::string{};
+  const auto player_xyz = hmr::format::split(p_pos, ' ');
+  const auto victim_xyz = hmr::format::split(v_pos, ' ');
 
-  // distance.euclidean(p_pos, v_pos)
+  // The player and victim positions should always have an X Y and Z component
+  if (player_xyz.size() != 3 || victim_xyz.size() != 3)
+  {
+    return std::string{};
+  }
 
-  return output;
+  const auto p_x = std::stoi(player_xyz[0].data());
+  const auto p_y = std::stoi(player_xyz[1].data());
+  const auto p_z = std::stoi(player_xyz[2].data());
+
+  const auto v_x = std::stoi(victim_xyz[0].data());
+  const auto v_y = std::stoi(victim_xyz[1].data());
+  const auto v_z = std::stoi(victim_xyz[2].data());
+
+  // Find the Euclidean distance between the player and victim
+  const double distance = std::hypot(p_x - v_x, p_y - v_y, p_z - v_z);
+
+  return csgo_distance_to_metres(distance);
 }
 
 
@@ -143,7 +161,7 @@ auto csgoparser::translate_steam_id(const std::string &input) -> std::string
     {
       return input;
     }
-    
+
   } else
   {
     return input;
@@ -206,8 +224,7 @@ auto csgoparser::parse_switched_teams([[maybe_unused]] uint64_t epoch, const std
 
     // Make sure to remove them from their old team if necessary
     const auto other_team = player_team == "CT"s ? "TERRORIST"s : "CT"s;
-    const auto pos = std::find_if(std::begin(game_state["teams"][other_team]), std::end(game_state["teams"][other_team]), [&player_json](const auto &entry)
-    {
+    const auto pos = std::find_if(std::begin(game_state["teams"][other_team]), std::end(game_state["teams"][other_team]), [&player_json](const auto &entry) {
       return entry.is_object() && entry == player_json;
     });
 
@@ -243,8 +260,7 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> st
       {"event_type", "game_over"},
       {"timestamp", epoch},
       {"game_map", game_state["game_map"]},
-      {"game_duration", duration}
-    };
+      {"game_duration", duration}};
 
     game_state["event_buffer"].push_back(event);
 
@@ -271,8 +287,7 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> st
               {"player", player["player"]},
               {"player_id", player["player_id"]},
               {"game_map", game_state["game_map"]},
-              {"game_mode", game_state["game_mode"]}
-            };
+              {"game_mode", game_state["game_mode"]}};
 
             game_state["event_buffer"].push_back(draw_event);
           }
@@ -291,8 +306,7 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> st
             {"player", player["player"]},
             {"player_id", player["player_id"]},
             {"game_map", game_state["game_map"]},
-            {"game_mode", game_state["game_mode"]}
-          };
+            {"game_mode", game_state["game_mode"]}};
 
           game_state["event_buffer"].push_back(win_event);
         }
@@ -306,13 +320,11 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> st
             {"player", player["player"]},
             {"player_id", player["player_id"]},
             {"game_map", game_state["game_map"]},
-            {"game_mode", game_state["game_mode"]}
-          };
+            {"game_mode", game_state["game_mode"]}};
 
           game_state["event_buffer"].push_back(lose_event);
         }
       }
-      
     }
 
     // Now that the match is over, return the event buffer (this will get cleared when the next match begins)
@@ -363,8 +375,7 @@ auto csgoparser::parse_attack(uint64_t epoch, const std::string &input) -> std::
       {"health_remaining", health_remaining},
       {"armor_remaining", armor_remaining},
       {"bodypart_hit", hitgroup},
-      {"game_map", game_state["game_map"]}
-    };
+      {"game_map", game_state["game_map"]}};
 
     // Was it self-inflicted?
     if (player_id == victim_id)
@@ -521,7 +532,7 @@ void csgoparser::track_stats()
               }
 
               spdlog::info(event.dump());
-              
+
               // This is where we'll need to dispatch the events if possible
             }
           }

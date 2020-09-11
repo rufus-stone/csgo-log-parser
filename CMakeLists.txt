@@ -34,6 +34,9 @@ include(cmake/StaticAnalyzers.cmake)
 # Find the PlatformFolders library
 find_package(platform_folders REQUIRED)
 
+# Find the Hamarr library
+find_package(hamarr CONFIG REQUIRED)
+
 # Get Conan up and running
 include(cmake/Conan.cmake)
 run_conan()
@@ -45,5 +48,6 @@ target_include_directories(
 
 # Link libraries to executable
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE CONAN_PKG::docopt.cpp CONAN_PKG::fmt
-                          CONAN_PKG::spdlog sago::platform_folders)
+  ${PROJECT_NAME}
+  PRIVATE CONAN_PKG::docopt.cpp CONAN_PKG::fmt CONAN_PKG::spdlog
+          sago::platform_folders hamarr::hamarr)
