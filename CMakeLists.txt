@@ -51,3 +51,9 @@ target_link_libraries(
   ${PROJECT_NAME}
   PRIVATE CONAN_PKG::docopt.cpp CONAN_PKG::fmt CONAN_PKG::spdlog
           sago::platform_folders hamarr::hamarr)
+
+include(CTest) # This adds the BUILD_TESTING option (ON by default)
+if(BUILD_TESTING)
+  enable_testing()
+  add_subdirectory(test ${PROJECT_BUILD_DIR})
+endif()
