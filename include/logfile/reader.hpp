@@ -4,7 +4,6 @@
 #include <filesystem> // For filesystem stuff
 #include <cstdlib> // For getting the path to the home directory
 
-#include <iostream>
 #include <string>
 #include <vector>
 #include <algorithm>

@@ -5,6 +5,8 @@
 #include <vector>
 #include <filesystem>
 
+#include <iostream>
+
 #include "catch.hpp"
 
 #include "nlohmann/json.hpp"
@@ -44,12 +46,17 @@ TEST_CASE("Simulation", "[simulation]")
   // Play back the logs and parse the events
   for (const auto &log_line : lines)
   {
+    std::cout << "Parsing log line!\n";
     csgo.parse_event(log_line);
   }
 
+  std::cout << "Got here 1!\n";
+
   // Check the game map and mode were correctly identified
-  REQUIRE(csgo.game_state["game_map"].get<std::string>() == "cs_agency");
-  REQUIRE(csgo.game_state["game_mode"].get<std::string>() == "competitive");
+  REQUIRE(csgo.game_state["game_map"] == "cs_agency");
+  REQUIRE(csgo.game_state["game_mode"] == "competitive"); // .get<std::string>()
+
+  std::cout << "Got here 2!\n";
 
   // Check the CT and TERRORIST team members were correctly identified
   auto is_member_of_team = [&csgo](const auto &player, const auto &team) -> bool
