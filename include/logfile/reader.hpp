@@ -104,6 +104,13 @@ auto reader::get_latest_bundle(std::streamoff start_position) const -> bundle
       std::exit(EXIT_FAILURE);
     }
 
+    // Don't do anything unless the file has grown since the last run
+    if (start_position == file_length)
+    {
+      spdlog::info("Waiting for new data...");
+      return bundle{lines, start_position};
+    }
+
     // Skip ahead to where we stopped reading last time around
     logfile.seekg(start_position, logfile.beg);
 
@@ -121,7 +128,7 @@ auto reader::get_latest_bundle(std::streamoff start_position) const -> bundle
     return bundle{lines, pos};
   }
 
-  return bundle{};
+  return bundle{lines, start_position};
 }
 
 } // namespace csgoprs::logs

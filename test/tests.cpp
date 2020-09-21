@@ -18,6 +18,7 @@ using namespace std::string_literals;
 
 using json = nlohmann::json;
 
+
 namespace csgoprs::test
 {
 struct player
@@ -27,15 +28,10 @@ struct player
 };
 } // namespace csgoprs::test
 
-TEST_CASE("Simulation", "[simulation]")
-{
-  // Create a csgoparser with a barebones config
-  // the actual log_dir path doesn't matter as we'll be feeding in pre-canned log lines, but it expects a real location so we'll use the current working directory, as that's guaranteed to exist!
-  auto config = json::parse(R"###({"log_dir":")###" + std::filesystem::current_path().string() + R"###(", "simulate":true})###");
-  auto csgo = csgoprs::csgoparser{config};
 
-  // Load in the sample logs - these simulate a complete competitive match on cs_agency
-  auto sample_logs = std::istringstream{csgoprs::log_samples::competitive_cs_agency.data()};
+auto load_sample_log(std::string_view sample_log) -> std::vector<std::string>
+{
+  auto sample_logs = std::istringstream{sample_log.data()};
   auto lines = std::vector<std::string>{};
   auto line = std::string{};
   while (std::getline(sample_logs, line))
@@ -43,22 +39,32 @@ TEST_CASE("Simulation", "[simulation]")
     lines.push_back(line);
   }
 
+  return lines;
+}
+
+
+TEST_CASE("Game 1", "[competitive][cs_agency]")
+{
+  // Create a csgoparser with a barebones config
+  // the actual log_dir path doesn't matter as we'll be feeding in pre-canned log lines, but it expects a real location so we'll use the current working directory, as that's guaranteed to exist!
+  auto config = json::parse(R"###({"log_dir":")###" + std::filesystem::current_path().string() + R"###(", "simulate":true})###");
+  auto csgo = csgoprs::csgoparser{config};
+
+  // Load in the sample logs - these simulate a complete competitive match on cs_agency
+  auto lines = load_sample_log(csgoprs::log_samples::competitive_cs_agency);
+
   // Play back the logs and parse the events
+  std::size_t i = 0;
   for (const auto &log_line : lines)
   {
-    std::cout << "Parsing log line!\n";
     csgo.parse_event(log_line);
   }
 
-  std::cout << "Got here 1!\n";
-
   // Check the game map and mode were correctly identified
   REQUIRE(csgo.game_state["game_map"] == "cs_agency");
-  REQUIRE(csgo.game_state["game_mode"] == "competitive"); // .get<std::string>()
+  REQUIRE(csgo.game_state["game_mode"] == "competitive");
 
-  std::cout << "Got here 2!\n";
-
-  // Check the CT and TERRORIST team members were correctly identified
+  // Lambda to check if a given player is on a given team
   auto is_member_of_team = [&csgo](const auto &player, const auto &team) -> bool
   {
     auto pos = std::find_if(std::begin(csgo.game_state["teams"][team]), std::end(csgo.game_state["teams"][team]), [&player](const json &team_member)
@@ -69,6 +75,7 @@ TEST_CASE("Simulation", "[simulation]")
     return (pos != std::end(csgo.game_state["teams"][team]));
   };
 
+  // Were the team members correctly identified?
   REQUIRE(is_member_of_team("Dean", "CT") == true);
   REQUIRE(is_member_of_team("James", "CT") == true);
   REQUIRE(is_member_of_team("Sam", "CT") == true);
@@ -77,6 +84,10 @@ TEST_CASE("Simulation", "[simulation]")
   REQUIRE(is_member_of_team("Bob", "TERRORIST") == true);
   REQUIRE(is_member_of_team("Mark", "TERRORIST") == true);
 
-  // TODO - Check that the winning team was correctly identified
-  //game_state["event_buffer"]
+  // Was the timestamp of the final event correctly identified?
+  REQUIRE(csgo.game_state["event_buffer"][csgo.game_state["event_buffer"].size() - 1]["timestamp"] == 1588629767000);
+
+  // Was the losing team correctly identified?
+  REQUIRE(csgo.game_state["event_buffer"][csgo.game_state["event_buffer"].size() - 1]["event_type"] == "lost");
+  REQUIRE(csgo.game_state["event_buffer"][csgo.game_state["event_buffer"].size() - 1]["player_team"] == "TERRORIST");
 }

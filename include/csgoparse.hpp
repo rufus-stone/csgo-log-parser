@@ -21,22 +21,22 @@ using namespace std::string_literals;
 // Build regex like this: std::regex{R"###(actual regex goes here)###", std::regex::optimize};
 static const auto base_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): (.+)$)###", std::regex::optimize};
 
-static const auto match_start_rgx = std::regex{R"###(World triggered "Match_Start" on "([^"]+)")###", std::regex::optimize};
-static const auto game_over_rgx = std::regex{R"###(Game Over: ([^\s]+).+?score (\d+):(\d+) after (\d+) min)###", std::regex::optimize};
+static const auto match_start_rgx = std::regex{R"###(^L \d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: World triggered "Match_Start" on "([^"]+)")###", std::regex::optimize};
+static const auto game_over_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): Game Over: ([^\s]+).+?score (\d+):(\d+) after (\d+) min)###", std::regex::optimize};
 
-static const auto switched_team_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)>" switched from team <(?:Unassigned|CT|TERRORIST)> to <(CT|TERRORIST)>)###", std::regex::optimize};
+static const auto switched_team_rgx = std::regex{R"###(^L \d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: "([^<]+)<\d{1,3}><(STEAM[^>]+)>" switched from team <(?:Unassigned|CT|TERRORIST)> to <(CT|TERRORIST)>)###", std::regex::optimize};
 
-static const auto attack_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[(-?\d{1,5} -?\d{1,5} -?\d{1,5})\] attacked "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[(-?\d{1,5} -?\d{1,5} -?\d{1,5})\] with "([^"]+)" \(damage "(\d+)"\) \(damage_armor "(\d+)"\) \(health "(\d+)"\) \(armor "(\d+)"\) \(hitgroup "([^"]+)"\))###", std::regex::optimize};
-static const auto killed_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[(-?\d{1,5} -?\d{1,5} -?\d{1,5})\] killed "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[(-?\d{1,5} -?\d{1,5} -?\d{1,5})\] with "([^"]+)"(?: \(([^)]+)\))?)###", std::regex::optimize};
-static const auto assist_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" assisted killing "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>")###", std::regex::optimize};
+static const auto attack_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[(-?\d{1,5} -?\d{1,5} -?\d{1,5})\] attacked "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[(-?\d{1,5} -?\d{1,5} -?\d{1,5})\] with "([^"]+)" \(damage "(\d+)"\) \(damage_armor "(\d+)"\) \(health "(\d+)"\) \(armor "(\d+)"\) \(hitgroup "([^"]+)"\))###", std::regex::optimize};
+static const auto killed_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[(-?\d{1,5} -?\d{1,5} -?\d{1,5})\] killed "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[(-?\d{1,5} -?\d{1,5} -?\d{1,5})\] with "([^"]+)"(?: \(([^)]+)\))?)###", std::regex::optimize};
+static const auto assist_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" assisted killing "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>")###", std::regex::optimize};
 
-static const auto suicide_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[-?\d{1,5} -?\d{1,5} -?\d{1,5}\] committed suicide with "[a-zA-Z0-9]{1,20}")###", std::regex::optimize};
-static const auto blinded_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" blinded for (\d\.\d{2}) by "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" from flashbang entindex [0-9\s]{1,5})###", std::regex::optimize};
+static const auto suicide_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" \[-?\d{1,5} -?\d{1,5} -?\d{1,5}\] committed suicide with "[a-zA-Z0-9]{1,20}")###", std::regex::optimize};
+static const auto blinded_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" blinded for (\d\.\d{2}) by "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" from flashbang entindex [0-9\s]{1,5})###", std::regex::optimize};
 
-static const auto bomb_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" triggered "(Got_The_Bomb|Dropped_The_Bomb|Planted_The_Bomb|Begin_Bomb_Defuse_With(?:out)?_Kit|Defused_The_Bomb)")###", std::regex::optimize};
-static const auto hostage_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" triggered "(Touched_A_Hostage|Rescued_A_Hostage|Killed_A_Hostage)")###", std::regex::optimize};
+static const auto bomb_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" triggered "(Got_The_Bomb|Dropped_The_Bomb|Planted_The_Bomb|Begin_Bomb_Defuse_With(?:out)?_Kit|Defused_The_Bomb)")###", std::regex::optimize};
+static const auto hostage_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" triggered "(Touched_A_Hostage|Rescued_A_Hostage|Killed_A_Hostage)")###", std::regex::optimize};
 
-static const auto chicken_rgx = std::regex{R"###("([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" .+? killed other "chicken.+? with "([^"]+)")###", std::regex::optimize};
+static const auto chicken_rgx = std::regex{R"###(^L (\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}): "([^<]+)<\d{1,3}><(STEAM[^>]+)><(CT|TERRORIST)>" .+? killed other "chicken.+? with "([^"]+)")###", std::regex::optimize};
 
 
 ////////////////////////////////////////////////////////////////
@@ -58,18 +58,17 @@ public:
 
   auto translate_steam_id(const std::string &input) -> std::string;
 
-  auto parse_base(const std::string &input);
   auto parse_match_start(const std::string &input) -> bool;
   auto parse_switched_teams(const std::string &input) -> bool;
-  auto parse_attack(uint64_t epoch, const std::string &input) -> bool;
-  auto parse_kill(uint64_t epoch, const std::string &input) -> bool;
-  auto parse_assist(uint64_t epoch, const std::string &input) -> bool;
-  auto parse_blinded(uint64_t epoch, const std::string &input) -> bool;
-  auto parse_suicide(uint64_t epoch, const std::string &input) -> bool;
-  auto parse_bomb(uint64_t epoch, const std::string &input) -> bool;
-  auto parse_hostage(uint64_t epoch, const std::string &input) -> bool;
-  auto parse_chicken(uint64_t epoch, const std::string &input) -> bool;
-  auto parse_game_over(uint64_t epoch, const std::string &input) -> json;
+  auto parse_attack(const std::string &input) -> bool;
+  auto parse_kill(const std::string &input) -> bool;
+  auto parse_assist(const std::string &input) -> bool;
+  auto parse_blinded(const std::string &input) -> bool;
+  auto parse_suicide(const std::string &input) -> bool;
+  auto parse_bomb(const std::string &input) -> bool;
+  auto parse_hostage(const std::string &input) -> bool;
+  auto parse_chicken(const std::string &input) -> bool;
+  auto parse_game_over(const std::string &input) -> json;
 
   auto parse_event(const std::string &input) -> json;
   void track_stats();
@@ -91,24 +90,6 @@ auto csgoparser::translate_steam_id(const std::string &input) -> std::string
   } else
   {
     return input;
-  }
-}
-
-
-////////////////////////////////////////////////////////////////
-auto csgoparser::parse_base(const std::string &input)
-{
-  if (auto base_m = std::smatch{}; std::regex_match(input, base_m, base_rgx))
-  {
-    const auto timestamp = base_m[1].str();
-    const auto msg = base_m[2].str();
-
-    const auto epoch = csgoprs::dtg_to_epoch_millis(timestamp);
-
-    return std::make_optional(std::make_tuple(epoch, msg));
-  } else
-  {
-    return std::optional<std::tuple<uint64_t, std::string>>{};
   }
 }
 
@@ -167,24 +148,25 @@ auto csgoparser::parse_switched_teams(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_attack(uint64_t epoch, const std::string &input) -> bool
+auto csgoparser::parse_attack(const std::string &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, attack_rgx))
   {
-    auto player = match[1].str();
-    auto player_id = match[2].str();
-    auto player_team = match[3].str();
-    auto player_pos = match[4].str();
-    auto victim = match[5].str();
-    auto victim_id = match[6].str();
-    auto victim_team = match[7].str();
-    auto victim_pos = match[8].str();
-    auto weapon = match[9].str();
-    auto damage_health = match[10].str();
-    auto damage_armor = match[11].str();
-    auto health_remaining = match[12].str();
-    auto armor_remaining = match[13].str();
-    auto hitgroup = match[14].str();
+    auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
+    auto player = match[2].str();
+    auto player_id = match[3].str();
+    auto player_team = match[4].str();
+    auto player_pos = match[5].str();
+    auto victim = match[6].str();
+    auto victim_id = match[7].str();
+    auto victim_team = match[8].str();
+    auto victim_pos = match[9].str();
+    auto weapon = match[10].str();
+    auto damage_health = match[11].str();
+    auto damage_armor = match[12].str();
+    auto health_remaining = match[13].str();
+    auto armor_remaining = match[14].str();
+    auto hitgroup = match[15].str();
 
     json event = {
       {"event_type", "attack"},
@@ -224,20 +206,21 @@ auto csgoparser::parse_attack(uint64_t epoch, const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_kill(uint64_t epoch, const std::string &input) -> bool
+auto csgoparser::parse_kill(const std::string &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, killed_rgx))
   {
-    auto player = match[1].str();
-    auto player_id = match[2].str();
-    auto player_team = match[3].str();
-    auto player_pos = match[4].str();
-    auto victim = match[5].str();
-    auto victim_id = match[6].str();
-    auto victim_team = match[7].str();
-    auto victim_pos = match[8].str();
-    auto weapon = match[9].str();
-    auto flair = match[10].str();
+    auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
+    auto player = match[2].str();
+    auto player_id = match[3].str();
+    auto player_team = match[4].str();
+    auto player_pos = match[5].str();
+    auto victim = match[6].str();
+    auto victim_id = match[7].str();
+    auto victim_team = match[8].str();
+    auto victim_pos = match[9].str();
+    auto weapon = match[10].str();
+    auto flair = match[11].str();
 
     json event = {
       {"event_type", "kill"},
@@ -277,16 +260,17 @@ auto csgoparser::parse_kill(uint64_t epoch, const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_assist(uint64_t epoch, const std::string &input) -> bool
+auto csgoparser::parse_assist(const std::string &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, assist_rgx))
   {
-    auto player = match[1].str();
-    auto player_id = match[2].str();
-    auto player_team = match[3].str();
-    auto victim = match[4].str();
-    auto victim_id = match[5].str();
-    auto victim_team = match[6].str();
+    auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
+    auto player = match[2].str();
+    auto player_id = match[3].str();
+    auto player_team = match[4].str();
+    auto victim = match[5].str();
+    auto victim_id = match[6].str();
+    auto victim_team = match[7].str();
 
     json event = {
       {"event_type", "assist"},
@@ -311,13 +295,14 @@ auto csgoparser::parse_assist(uint64_t epoch, const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_suicide(uint64_t epoch, const std::string &input) -> bool
+auto csgoparser::parse_suicide(const std::string &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, suicide_rgx))
   {
-    auto player = match[1].str();
-    auto player_id = match[2].str();
-    auto player_team = match[3].str();
+    auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
+    auto player = match[2].str();
+    auto player_id = match[3].str();
+    auto player_team = match[4].str();
 
     json event = {
       {"event_type", "suicide"},
@@ -339,17 +324,18 @@ auto csgoparser::parse_suicide(uint64_t epoch, const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_blinded(uint64_t epoch, const std::string &input) -> bool
+auto csgoparser::parse_blinded(const std::string &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, blinded_rgx))
   {
-    auto victim = match[1].str();
-    auto victim_id = match[2].str();
-    auto victim_team = match[3].str();
-    auto duration = match[4].str();
-    auto player = match[5].str();
-    auto player_id = match[6].str();
-    auto player_team = match[7].str();
+    auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
+    auto victim = match[2].str();
+    auto victim_id = match[3].str();
+    auto victim_team = match[4].str();
+    auto duration = match[5].str();
+    auto player = match[6].str();
+    auto player_id = match[7].str();
+    auto player_team = match[8].str();
 
     json event = {
       {"event_type", "blinded"},
@@ -375,14 +361,15 @@ auto csgoparser::parse_blinded(uint64_t epoch, const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_bomb(uint64_t epoch, const std::string &input) -> bool
+auto csgoparser::parse_bomb(const std::string &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, bomb_rgx))
   {
-    auto player = match[1].str();
-    auto player_id = match[2].str();
-    auto player_team = match[3].str();
-    auto bomb_action = match[4].str();
+    auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
+    auto player = match[2].str();
+    auto player_id = match[3].str();
+    auto player_team = match[4].str();
+    auto bomb_action = match[5].str();
 
     json event = {
       {"event_type", bomb_action},
@@ -404,14 +391,15 @@ auto csgoparser::parse_bomb(uint64_t epoch, const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_hostage(uint64_t epoch, const std::string &input) -> bool
+auto csgoparser::parse_hostage(const std::string &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, hostage_rgx))
   {
-    auto player = match[1].str();
-    auto player_id = match[2].str();
-    auto player_team = match[3].str();
-    auto hostage_action = match[4].str();
+    auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
+    auto player = match[2].str();
+    auto player_id = match[3].str();
+    auto player_team = match[4].str();
+    auto hostage_action = match[5].str();
 
     json event = {
       {"event_type", hostage_action},
@@ -433,14 +421,15 @@ auto csgoparser::parse_hostage(uint64_t epoch, const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_chicken(uint64_t epoch, const std::string &input) -> bool
+auto csgoparser::parse_chicken(const std::string &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, chicken_rgx))
   {
-    auto player = match[1].str();
-    auto player_id = match[2].str();
-    auto player_team = match[3].str();
-    auto weapon = match[4].str();
+    auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
+    auto player = match[2].str();
+    auto player_id = match[3].str();
+    auto player_team = match[4].str();
+    auto weapon = match[5].str();
 
     json event = {
       {"event_type", "chicken"},
@@ -463,14 +452,15 @@ auto csgoparser::parse_chicken(uint64_t epoch, const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> json
+auto csgoparser::parse_game_over(const std::string &input) -> json
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, game_over_rgx))
   {
-    const auto game_mode = match[1].str();
-    const auto ct_score = match[2].str();
-    const auto terrorist_score = match[3].str();
-    const auto duration = match[4].str();
+    const auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
+    const auto game_mode = match[2].str();
+    const auto ct_score = match[3].str();
+    const auto terrorist_score = match[4].str();
+    const auto duration = match[5].str();
 
     this->game_state["game_mode"] = game_mode;
 
@@ -516,6 +506,7 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> js
             {"timestamp", epoch},
             {"player", player["player"]},
             {"player_id", player["player_id"]},
+            {"player_team", winning_team},
             {"game_map", this->game_state["game_map"]}};
 
           this->game_state["event_buffer"].push_back(win_event);
@@ -529,6 +520,7 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> js
             {"timestamp", epoch},
             {"player", player["player"]},
             {"player_id", player["player_id"]},
+            {"player_team", losing_team},
             {"game_map", this->game_state["game_map"]}};
 
           this->game_state["event_buffer"].push_back(lose_event);
@@ -537,12 +529,14 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> js
     }
 
     // Now update all the buffered events with the game mode that was just played, and perform any Steam ID -> Name translations (if enabled)
+    const bool translate = this->config.contains("steam_id_translation") && this->config["steam_id_translation"]["active"] ? true : false;
+
     for (auto &buffered_event : this->game_state["event_buffer"])
     {
       buffered_event["game_mode"] = game_mode;
 
       // Perform Steam ID translations
-      if (this->config["steam_id_translation"]["active"])
+      if (translate)
       {
         if (buffered_event.contains("player_id"))
         {
@@ -568,81 +562,75 @@ auto csgoparser::parse_game_over(uint64_t epoch, const std::string &input) -> js
 ////////////////////////////////////////////////////////////////
 auto csgoparser::parse_event(const std::string &input) -> json
 {
-  auto base = parse_base(input);
-  if (base.has_value())
-  {
-    const auto [epoch, msg] = base.value();
-
-    // Match start - use this to set the current game map
-    if (parse_match_start(msg))
-    {
-      return json{};
-    }
-
-    // Switched teams - use this to track who is on which team
-    if (parse_switched_teams(msg))
-    {
-      return json{};
-    }
-
-    // Attack
-    if (parse_attack(epoch, msg))
-    {
-      return json{};
-    }
-
-    // Kill
-    if (parse_kill(epoch, msg))
-    {
-      return json{};
-    }
-
-    // Assist
-    if (parse_assist(epoch, msg))
-    {
-      return json{};
-    }
-
-    // Suicide
-    if (parse_suicide(epoch, msg))
-    {
-      return json{};
-    }
-
-    // Blinded
-    if (parse_blinded(epoch, msg))
-    {
-      return json{};
-    }
-
-    // Bomb
-    if (parse_bomb(epoch, msg))
-    {
-      return json{};
-    }
-
-    // Hostage
-    if (parse_hostage(epoch, msg))
-    {
-      return json{};
-    }
-
-    // Chicken
-    if (parse_chicken(epoch, msg))
-    {
-      return json{};
-    }
-
-    // Game Over - use this to track which game mode was being played, who won the game, and to trigger the dispatch of all events from the now-complete match
-    auto game_over = parse_game_over(epoch, msg);
-    if (!game_over.is_null())
-    {
-      return game_over;
-    }
-  } else
+  // Match start - use this to set the current game map
+  if (parse_match_start(input))
   {
     return json{};
   }
+
+  // Switched teams - use this to track who is on which team
+  if (parse_switched_teams(input))
+  {
+    return json{};
+  }
+
+  // Attack
+  if (parse_attack(input))
+  {
+    return json{};
+  }
+
+  // Kill
+  if (parse_kill(input))
+  {
+    return json{};
+  }
+
+  // Assist
+  if (parse_assist(input))
+  {
+    return json{};
+  }
+
+  // Suicide
+  if (parse_suicide(input))
+  {
+    return json{};
+  }
+
+  // Blinded
+  if (parse_blinded(input))
+  {
+    return json{};
+  }
+
+  // Bomb
+  if (parse_bomb(input))
+  {
+    return json{};
+  }
+
+  // Hostage
+  if (parse_hostage(input))
+  {
+    return json{};
+  }
+
+  // Chicken
+  if (parse_chicken(input))
+  {
+    return json{};
+  }
+
+  // Game Over - use this to track which game mode was being played, who won the game, and to trigger the dispatch of all events from the now-complete match
+  auto game_over = parse_game_over(input);
+  if (!game_over.is_null())
+  {
+    return game_over;
+  }
+  
+  // Or did nothing match?
+  return json{};
 }
 
 
@@ -681,7 +669,6 @@ void csgoparser::track_stats()
     offset = pos;
 
     spdlog::info("All caught up...");
-    std::exit(EXIT_SUCCESS);
 
     // Wait for a few seconds to avoid hammering the CPU
     std::this_thread::sleep_for(3s);
