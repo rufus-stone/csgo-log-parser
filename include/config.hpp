@@ -4,11 +4,8 @@
 #include <filesystem> // For filesystem stuff
 #include <cstdlib> // For getting the path to the home directory
 
-#include <iostream>
 #include <string>
 #include <string_view>
-#include <vector>
-#include <algorithm>
 
 #include <spdlog/spdlog.h>
 #include <sago/platform_folders.h>

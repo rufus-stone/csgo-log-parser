@@ -68,6 +68,7 @@ L 05/04/2020 - 21:51:32: "James<3><STEAM_1:0:00000005><TERRORIST>" left buyzone 
 L 05/04/2020 - 21:51:47: "James<3><STEAM_1:0:00000005><TERRORIST>" [-382 -1187 256] attacked "Alice<8><STEAM_1:1:00000001><CT>" [-156 -1131 320] with "tec9" (damage "26") (damage_armor "1") (health "41") (armor "98") (hitgroup "chest")
 L 05/04/2020 - 21:51:47: "James<3><STEAM_1:0:00000005><TERRORIST>" [-363 -1201 256] attacked "Alice<8><STEAM_1:1:00000001><CT>" [-133 -1154 303] with "tec9" (damage "26") (damage_armor "1") (health "15") (armor "96") (hitgroup "right arm")
 L 05/04/2020 - 21:51:48: "James<3><STEAM_1:0:00000005><TERRORIST>" [-248 -1240 256] attacked "Alice<8><STEAM_1:1:00000001><CT>" [-101 -1183 284] with "tec9" (damage "34") (damage_armor "1") (health "0") (armor "94") (hitgroup "stomach")
+L 05/04/2020 - 21:51:48: "James<3><STEAM_1:0:00000005><TERRORIST>" [-251 -1233 256] killed other "chicken<267>" [-250 -1232 256] with "tec9"
 L 05/04/2020 - 21:51:48: "Alice<8><STEAM_1:1:00000001><CT>" [-101 -1183 284] dropped off a hostage
 L 05/04/2020 - 21:51:48: "James<3><STEAM_1:0:00000005><TERRORIST>" [-248 -1240 256] killed "Alice<8><STEAM_1:1:00000001><CT>" [-101 -1183 348] with "tec9"
 L 05/04/2020 - 21:51:48: Team "TERRORIST" triggered "SFUI_Notice_Terrorists_Win" (CT "0") (T "1")
@@ -322,6 +323,7 @@ L 05/04/2020 - 21:57:10: "James<3><STEAM_1:0:00000005><TERRORIST>" [-362 -2008 2
 L 05/04/2020 - 21:57:14: "James<3><STEAM_1:0:00000005><TERRORIST>" [-244 -2019 273] attacked "Mark<7><STEAM_1:1:00000006><CT>" [-36 -1320 256] with "sg556" (damage "36") (damage_armor "0") (health "64") (armor "100") (hitgroup "stomach")
 L 05/04/2020 - 21:57:14: "Mark<7><STEAM_1:1:00000006><CT>" [-27 -1351 256] dropped off a hostage
 L 05/04/2020 - 21:57:14: "Mark<7><STEAM_1:1:00000006><CT>" triggered "Rescued_A_Hostage"
+L 05/04/2020 - 21:57:14: "James<3><STEAM_1:0:00000005><TERRORIST>" [-320 -2014 273] committed suicide with "hegrenade"
 L 05/04/2020 - 21:57:14: Team "CT" triggered "SFUI_Notice_All_Hostages_Rescued" (CT "1") (T "4")
 L 05/04/2020 - 21:57:14: Team "CT" scored "1" with "3" players
 L 05/04/2020 - 21:57:14: Team "TERRORIST" scored "4" with "3" players

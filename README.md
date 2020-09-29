@@ -3,7 +3,7 @@ Log parser for Counter Strike: Global Offensive
 
 ## Configuration
 
-csgoparse loads settings from a config.json file, which, if necessary, it creates the first time to program runs.
+csgoparse loads settings from a config.json file, which, if necessary, it creates the first time the program runs.
 
 The barebones config.json looks like this:
 
