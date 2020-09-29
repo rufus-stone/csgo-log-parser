@@ -52,7 +52,7 @@ reader::reader(const std::filesystem::path &log_dir)
 
   // List all the regular files in the directory
   auto files = std::vector<std::filesystem::path>{};
-  for (const auto &entry : std::filesystem::directory_iterator(log_dir))
+  for (auto const &entry : std::filesystem::directory_iterator(log_dir))
   {
     if (std::filesystem::is_regular_file(entry))
     {
