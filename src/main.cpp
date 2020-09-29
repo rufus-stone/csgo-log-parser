@@ -5,6 +5,7 @@
 
 #include "csgoparse.hpp"
 #include "config.hpp"
+#include "geo.hpp"
 
 static constexpr auto usage =
   R"(CS:GO Server Log Parser.
@@ -15,8 +16,9 @@ static constexpr auto usage =
   Options:
     -h, --help                  Show this screen.
     -v, --version               Show version.
-    -d <path>, --log_dir <path> Path to the directory containing the CS:GO game logs. This will override the path specified (if any) in the config.json.
     -c <path>, --config <path>  Path to your config.json config file. This will override the default location.
+    -g <path>, --geo <path>     Path to your maps.json geo details file. This will override the default location.
+    -d <path>, --log_dir <path> Path to the directory containing the CS:GO game logs. This will override the path specified (if any) in the config.json.
     -t, --test                  Perform a dry run to test log parsing, without dispatching any events to, e.g. elasticsearch
     -i, --ignore                Ignore Steam ID -> Name translations.
 )";
@@ -37,8 +39,19 @@ int main(int argc, char const **argv)
     spdlog::info("Custom config file path: {}", custom_config_path.string());
   }
 
+  // Optional custom map geo path
+  auto custom_geo_path = std::filesystem::path{};
+  if (args["--geo"].isString())
+  {
+    custom_geo_path = args["--geo"].asString();
+    spdlog::info("Custom map geo file path: {}", custom_geo_path.string());
+  }
+
   // Load the config JSON from file
   auto config_json = csgoprs::cfg::load_config(custom_config_path);
+
+  // Load the map geo JSON from file
+  auto geo_json = csgoprs::geo::load_map_geo(custom_geo_path);
 
   // Determine where to look for the server logs
   // If specified on the command line, override the path to the log directory
@@ -74,7 +87,7 @@ int main(int argc, char const **argv)
   }
 
   // Create the csgoparser and begin!
-  auto csgo = csgoprs::csgoparser{config_json};
+  auto csgo = csgoprs::csgoparser{config_json, geo_json};
   csgo.track_stats();
 
   return EXIT_SUCCESS;
