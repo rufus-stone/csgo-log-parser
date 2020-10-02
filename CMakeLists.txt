@@ -31,11 +31,28 @@ enable_sanitizers(${PROJECT_NAME})
 # Allow for static analysis options
 include(cmake/StaticAnalyzers.cmake)
 
+# In case we need to fetch any missing libraries
+include(FetchContent)
+
 # Find the PlatformFolders library
-find_package(platform_folders REQUIRED)
+find_package(platform_folders)
+if(NOT platform_folders_FOUND)
+  FetchContent_Declare(
+    platform_folders
+    GIT_REPOSITORY https://github.com/sago007/PlatformFolders.git
+    GIT_TAG d318731b37ebbeb6ff8fd03e4de3e6b45130b189)
+  FetchContent_MakeAvailable(platform_folders)
+endif()
 
 # Find the Hamarr library
-find_package(hamarr CONFIG REQUIRED)
+find_package(hamarr CONFIG)
+if(NOT hamarr_FOUND)
+  FetchContent_Declare(
+    hamarr
+    GIT_REPOSITORY https://github.com/rufus-stone/hamarr.git
+    GIT_TAG 902048cdb1ab27587e7271cc7e82cd595798a8d6)
+  FetchContent_MakeAvailable(hamarr)
+endif()
 
 # Get Conan up and running
 include(cmake/Conan.cmake)
