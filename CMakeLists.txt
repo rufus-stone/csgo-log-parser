@@ -54,9 +54,27 @@ if(NOT hamarr_FOUND)
   FetchContent_MakeAvailable(hamarr)
 endif()
 
-# Get Conan up and running
-include(cmake/Conan.cmake)
-run_conan()
+# Find the docopt library
+find_package(docopt)
+if(NOT docopt_FOUND)
+  message("Failed to find docopt!")
+  FetchContent_Declare(
+    docopt
+    GIT_REPOSITORY https://github.com/docopt/docopt.cpp.git
+    GIT_TAG 42ebcec9dc2c99a1b3a4542787572045763ad196) # 0.6.3
+  FetchContent_MakeAvailable(docopt)
+endif()
+
+# Find the spdlog library
+find_package(spdlog)
+if(NOT spdlog_FOUND)
+  FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG cbe9448650176797739dbab13961ef4c07f4290f)
+  FetchContent_MakeAvailable(spdlog)
+endif()
+
 
 # Add the include directory to the target
 target_include_directories(
@@ -65,9 +83,8 @@ target_include_directories(
 
 # Link libraries to executable
 target_link_libraries(
-  ${PROJECT_NAME}
-  PRIVATE CONAN_PKG::docopt.cpp CONAN_PKG::fmt CONAN_PKG::spdlog
-          sago::platform_folders hamarr::hamarr)
+  ${PROJECT_NAME} PRIVATE docopt spdlog::spdlog sago::platform_folders
+                          hamarr::hamarr)
 
 include(CTest) # This adds the BUILD_TESTING option (ON by default)
 if(BUILD_TESTING)

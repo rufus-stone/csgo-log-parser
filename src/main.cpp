@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <spdlog/spdlog.h>
-#include <docopt/docopt.h>
+#include <docopt.h>
 
 #include "csgoparse.hpp"
 #include "config.hpp"
