@@ -38,7 +38,6 @@ include(FetchContent)
 find_package(platform_folders)
 if(NOT platform_folders_FOUND)
   message("Failed to find platform_folders! Fetching it instead...")
-  set(FETCHCONTENT_QUIET NO)
   FetchContent_Declare(
     platform_folders
     GIT_REPOSITORY https://github.com/sago007/PlatformFolders.git
@@ -53,7 +52,6 @@ if(NOT hamarr_FOUND)
   set(BUILD_HAMARR_TESTS
       OFF
       CACHE INTERNAL "")
-  set(FETCHCONTENT_QUIET NO)
   FetchContent_Declare(
     hamarr
     GIT_REPOSITORY https://github.com/rufus-stone/hamarr.git
@@ -64,7 +62,6 @@ endif()
 # Find the docopt library
 find_package(docopt)
 if(NOT docopt_FOUND)
-  set(FETCHCONTENT_QUIET NO)
   message("Failed to find docopt! Fetching it instead...")
   FetchContent_Declare(
     docopt
@@ -77,7 +74,6 @@ endif()
 find_package(spdlog)
 if(NOT spdlog_FOUND)
   message("Failed to find spdlog! Fetching it instead...")
-  set(FETCHCONTENT_QUIET NO)
   FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
