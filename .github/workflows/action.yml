@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
-        include:
+        config:
           - {name: ubuntu-gcc-9, os: ubuntu-latest, cc: gcc-9, cxx: g++-9}
           - {name: ubuntu-clang-9, os: ubuntu-latest, cc: clang-9, cxx: clang++-9}
           - {name: mac-latest, os: macos-latest}
