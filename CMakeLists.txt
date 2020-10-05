@@ -43,6 +43,7 @@ if(NOT platform_folders_FOUND)
     GIT_REPOSITORY https://github.com/sago007/PlatformFolders.git
     GIT_TAG d318731b37ebbeb6ff8fd03e4de3e6b45130b189)
   FetchContent_MakeAvailable(platform_folders)
+  message("platform_folders_SOURCE_DIR: ${platform_folders_SOURCE_DIR}")
 endif()
 
 # Find the Hamarr library
@@ -57,6 +58,7 @@ if(NOT hamarr_FOUND)
     GIT_REPOSITORY https://github.com/rufus-stone/hamarr.git
     GIT_TAG 902048cdb1ab27587e7271cc7e82cd595798a8d6)
   FetchContent_MakeAvailable(hamarr)
+  message("hamarr_SOURCE_DIR: ${hamarr_SOURCE_DIR}")
 endif()
 
 # Find the docopt library
@@ -68,6 +70,7 @@ if(NOT docopt_FOUND)
     GIT_REPOSITORY https://github.com/docopt/docopt.cpp.git
     GIT_TAG 42ebcec9dc2c99a1b3a4542787572045763ad196)
   FetchContent_MakeAvailable(docopt)
+  message("docopt_SOURCE_DIR: ${docopt_SOURCE_DIR}")
 endif()
 
 # Find the spdlog library
@@ -79,6 +82,7 @@ if(NOT spdlog_FOUND)
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
     GIT_TAG cbe9448650176797739dbab13961ef4c07f4290f)
   FetchContent_MakeAvailable(spdlog)
+  message("spdlog_SOURCE_DIR: ${spdlog_SOURCE_DIR}")
 endif()
 
 # Add the include directory to the target

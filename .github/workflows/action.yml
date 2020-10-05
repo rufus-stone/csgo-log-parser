@@ -16,14 +16,14 @@ jobs:
           - {name: ubuntu-clang-9, os: ubuntu-latest, cc: clang-9, cxx: clang++-9}
           - {name: mac-latest, os: macos-latest, cc: clang, cxx: clang++}
           - {name: windows-latest, os: windows-latest, cc: cl, cxx: cl}
-      fail-fast: false
+      fail-fast: true
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install OpenSSL for Mac
+    - name: Prepare OpenSSL for Mac
       if: ${{matrix.config.name == 'mac-latest'}}
-      run: brew update && brew install openssl && brew link --force openssl
+      run: export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig:$PKG_CONFIG_PATH" && pkg-config --modversion openssl
 
     - name: Create Build Environment
       env:
