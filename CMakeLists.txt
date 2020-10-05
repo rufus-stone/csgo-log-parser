@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15...3.18)
 # Set up our project
 project(
   csgoparse
-  VERSION 0.1.0
+  VERSION 0.2.0
   DESCRIPTION "A log parser for CS:GO server logs"
   HOMEPAGE_URL "https://github.com/rufus-stone/csgo-log-parser"
   LANGUAGES CXX)

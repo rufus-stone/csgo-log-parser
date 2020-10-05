@@ -18,13 +18,16 @@ jobs:
         config:
           - {name: ubuntu-gcc-9, os: ubuntu-latest, cc: gcc-9, cxx: g++-9}
           - {name: ubuntu-clang-9, os: ubuntu-latest, cc: clang-9, cxx: clang++-9}
-          - {name: mac-latest, os: macos-latest}
-          - {name: windows-latest, os: windows-latest}
+          - {name: mac-latest, os: macos-latest, cc: clang, cxx: clang++}
+          - {name: windows-latest, os: windows-latest, cc: cl, cxx: cl}
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Create Build Environment
+      env:
+        CC: ${{matrix.config.cc}}
+        CXX: ${{matrix.config.cxx}}
       run: cmake -S . -B ${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build Tests
