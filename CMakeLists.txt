@@ -35,7 +35,7 @@ include(cmake/StaticAnalyzers.cmake)
 include(FetchContent)
 
 # Find the PlatformFolders library
-find_package(platform_folders)
+find_package(platform_folders QUIET)
 if(NOT platform_folders_FOUND)
   message("Failed to find platform_folders! Fetching it instead...")
   FetchContent_Declare(
@@ -44,10 +44,15 @@ if(NOT platform_folders_FOUND)
     GIT_TAG d318731b37ebbeb6ff8fd03e4de3e6b45130b189)
   FetchContent_MakeAvailable(platform_folders)
   message("platform_folders_SOURCE_DIR: ${platform_folders_SOURCE_DIR}")
+  
+  # When installed at the system level, platform_folders is normally included like this: #include <sago/platform_folders.h>
+  # When using FetchContent, for some reason platform_folders is normally included like this: #include <platform_folders.h>
+  # If we include_directories() for the platform_folders_SOURCE_DIR when FetchContent has been used, we can preserve the format: #include <sago/platform_folders.h>
+  include_directories(${platform_folders_SOURCE_DIR})
 endif()
 
 # Find the Hamarr library
-find_package(hamarr CONFIG)
+find_package(hamarr CONFIG QUIET)
 if(NOT hamarr_FOUND)
   message("Failed to find Hamarr! Fetching it instead...")
   set(BUILD_HAMARR_TESTS
@@ -62,7 +67,7 @@ if(NOT hamarr_FOUND)
 endif()
 
 # Find the docopt library
-find_package(docopt)
+find_package(docopt QUIET)
 if(NOT docopt_FOUND)
   message("Failed to find docopt! Fetching it instead...")
   FetchContent_Declare(
@@ -74,7 +79,7 @@ if(NOT docopt_FOUND)
 endif()
 
 # Find the spdlog library
-find_package(spdlog)
+find_package(spdlog QUIET)
 if(NOT spdlog_FOUND)
   message("Failed to find spdlog! Fetching it instead...")
   FetchContent_Declare(
@@ -100,3 +105,6 @@ if(BUILD_TESTING)
   enable_testing()
   add_subdirectory(test ${PROJECT_BUILD_DIR})
 endif()
+
+get_target_property(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_NAME} INCLUDE_DIRECTORIES)
+message("${PROJECT_NAME}_INCLUDE_DIRS: ${${PROJECT_NAME}_INCLUDE_DIRS}")
