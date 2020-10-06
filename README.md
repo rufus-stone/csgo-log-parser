@@ -1,5 +1,37 @@
 # csgo-log-parser
-Log parser for Counter Strike: Global Offensive
+
+A log parser for Counter Strike: Global Offensive
+
+## Motivation
+
+CS:GO dedicated servers can write game logs to a file. These contain details about actions that occured in the game, such as a player attacking another player, getting a kill or assist, planting/defusing the bomb, rescuing a hostage, etc. Even chicken deaths are logged!
+
+## Installation
+
+The simplest way to build from source is using CMake (version 3.15 or above is required). For example:
+
+```sh
+git clone git@github.com:rufus-stone/csgo-log-parser.git
+
+cd csgo-log-parser
+
+# Get CMake to create a new build directory
+cmake -S . -B build
+
+# Build the app
+cmake --build build
+```
+
+### Requirements
+
+csgoparse requires the following libraries:
+
+- [platform_folders](https://github.com/sago007/PlatformFolders)
+- [hamarr](https://github.com/rufus-stone/hamarr)
+- [docopt](https://github.com/docopt/docopt.cpp)
+- [spdlog](https://github.com/gabime/spdlog)
+
+If these are not already installed on your system, CMake will fetch them from GitHub for you
 
 ## Configuration
 
@@ -21,7 +53,7 @@ Out of the box, this requires modification by the user to tell csgoparse which d
 }
 ```
 
-Because CS:GO server logs use a player's Steam ID as a unique identifier to differentiate between players, and because a player can freely change their display name in-game, csgoparse also uses the Steam ID to identify players when tracking stats. However, should you wish, you can tell csgoparse to translate specific Steam IDs into some other text, as this may make player-specific queries in tools like Elasticsearch/Kibana easier. In this way, it does not matter whether a player changes their in-game display name, csgoparse will continue to track their stats via their Steam ID, but output events containing whatever alternative name you specified in the config.json file. For example:
+Because CS:GO server logs use a player's Steam ID to differentiate between players, and because a player can freely change their display name in-game, csgoparse also uses the Steam ID to identify players when tracking stats. However, should you wish, you can tell csgoparse to translate specific Steam IDs into some other text, as this may make player-specific searches in programs like Elasticsearch/Kibana easier. In this way, it does not matter whether a player changes their in-game display name, csgoparse will continue to track their stats via their Steam ID, but output events containing whatever alternative name you specified in the config.json file. For example:
 
 ```json
 {
@@ -36,4 +68,8 @@ Because CS:GO server logs use a player's Steam ID as a unique identifier to diff
 }
 ```
 
-The config above will ensure that, should csgoparse process a server log line containing references to Steam ID "STEAM_1:0:12345678", it will replace this with the name "Alice" when outputing events. Likewise, "STEAM_1:1:87654321" will be translated to "Bob". The `"active"` setting can be changed to `false` in order to disable the Steam ID translation functionality.
+The config above will ensure that, should csgoparse process a server log line containing references to Steam ID "STEAM_1:0:12345678", it will replace this with the name "Alice" when generating output JSON. Likewise, "STEAM_1:1:87654321" will be translated to "Bob". The `"active"` setting can be changed to `false` in order to disable the Steam ID translation functionality.
+
+## CS:GO server configuration
+
+csgoparse currently expects CS:GO server logs to be created using the maximum logging verbosity level
