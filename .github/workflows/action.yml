@@ -39,4 +39,4 @@ jobs:
     - name: Run Tests
       working-directory: ${{runner.workspace}}
       shell: bash
-      run: ${{runner.workspace}}/build/test/tests
+      run: ${{runner.workspace}}/build/test/csgoparse_tests
