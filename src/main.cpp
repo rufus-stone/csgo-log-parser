@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <spdlog/spdlog.h>
-#include <docopt/docopt.h>
+#include <docopt.h>
 
 #include "csgoparse.hpp"
 #include "config.hpp"
@@ -28,7 +28,7 @@ int main(int argc, char const **argv)
 {
   auto args = docopt::docopt(usage, {std::next(argv), std::next(argv, argc)},
     true, // show help if requested
-    "csgoparse 1.0"); // version string
+    "csgoparse 0.2.0"); // version string
 
 
   // Optional custom config path
