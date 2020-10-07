@@ -23,13 +23,13 @@ jobs:
 
     - name: Prepare OpenSSL for Mac
       if: ${{matrix.config.name == 'mac-latest'}}
-      run: export PATH="$(brew --prefix openssl)/bin:$PATH" && echo $PATH && export LDFLAGS="-L$(brew --prefix openssl)/lib $LDFLAGS" && echo $LDFLAGS && export CPPFLAGS="-I$(brew --prefix openssl)/include $CPPFLAGS" && echo $CPPFLAGS && export PKG_CONFIG_PATH="$(brew --prefix openssl)/lib/pkgconfig:$PKG_CONFIG_PATH" && echo $PKG_CONFIG_PATH && pkg-config --modversion openssl
+      run: export PATH="$(brew --prefix openssl)/bin:$PATH" && export LDFLAGS="-L$(brew --prefix openssl)/lib $LDFLAGS" && export CPPFLAGS="-I$(brew --prefix openssl)/include $CPPFLAGS" && export PKG_CONFIG_PATH="$(brew --prefix openssl)/lib/pkgconfig" && pkg-config --modversion openssl
 
     - name: Create Build Environment
       env:
         CC: ${{matrix.config.cc}}
         CXX: ${{matrix.config.cxx}}
-      run: cmake -S . -B ${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: echo $LDFLAGS && cmake -S . -B ${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build Tests
       working-directory: ${{runner.workspace}}
