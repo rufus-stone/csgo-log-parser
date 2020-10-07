@@ -124,7 +124,3 @@ if(BUILD_TESTING)
   enable_testing()
   add_subdirectory(test ${PROJECT_BUILD_DIR})
 endif()
-
-get_target_property(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_NAME}
-                    INCLUDE_DIRECTORIES)
-message("${PROJECT_NAME}_INCLUDE_DIRS: ${${PROJECT_NAME}_INCLUDE_DIRS}")
