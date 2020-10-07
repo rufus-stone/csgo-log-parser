@@ -48,6 +48,11 @@ if(NOT platform_folders_FOUND)
 
   FetchContent_MakeAvailable(platform_folders)
 
+  # Prevent tests etc from being built
+  if(IS_DIRECTORY "${platform_folders_SOURCE_DIR}")
+    set_property(DIRECTORY ${platform_folders_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
+  endif()
+
   message("platform_folders_SOURCE_DIR: ${platform_folders_SOURCE_DIR}")
 
   # When installed at the system level, platform_folders is normally included
@@ -74,6 +79,12 @@ if(NOT hamarr_FOUND)
                        GIT_REPOSITORY https://github.com/rufus-stone/hamarr.git)
 
   FetchContent_MakeAvailable(hamarr)
+
+  # Prevent tests etc from being built
+  if(IS_DIRECTORY "${hamarr_SOURCE_DIR}")
+    set_property(DIRECTORY ${hamarr_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
+  endif()
+
   message("hamarr_SOURCE_DIR: ${hamarr_SOURCE_DIR}")
 endif()
 
@@ -90,6 +101,11 @@ if(NOT docopt_FOUND)
 
   FetchContent_MakeAvailable(docopt)
 
+  # Prevent tests etc from being built
+  if(IS_DIRECTORY "${docopt_SOURCE_DIR}")
+    set_property(DIRECTORY ${docopt_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
+  endif()
+
   message("docopt_SOURCE_DIR: ${docopt_SOURCE_DIR}")
 endif()
 
@@ -105,6 +121,11 @@ if(NOT spdlog_FOUND)
     GIT_TAG cbe9448650176797739dbab13961ef4c07f4290f)
 
   FetchContent_MakeAvailable(spdlog)
+
+  # Prevent tests etc from being built
+  if(IS_DIRECTORY "${spdlog_SOURCE_DIR}")
+    set_property(DIRECTORY ${spdlog_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
+  endif()
 
   message("spdlog_SOURCE_DIR: ${spdlog_SOURCE_DIR}")
 endif()
