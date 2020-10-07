@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         config:
-          - {name: ubuntu-gcc-9, os: ubuntu-latest, cc: gcc-9, cxx: g++-9}
-          - {name: ubuntu-clang-9, os: ubuntu-latest, cc: clang-9, cxx: clang++-9}
+          #- {name: ubuntu-gcc-9, os: ubuntu-latest, cc: gcc-9, cxx: g++-9}
+          #- {name: ubuntu-clang-9, os: ubuntu-latest, cc: clang-9, cxx: clang++-9}
           - {name: mac-latest, os: macos-latest, cc: clang, cxx: clang++}
           #- {name: windows-latest, os: windows-latest, cc: cl, cxx: cl}
       fail-fast: false
@@ -23,16 +23,12 @@ jobs:
 
     - name: Prepare OpenSSL for Mac
       if: ${{matrix.config.name == 'mac-latest'}}
-      run: export PATH="$(brew --prefix openssl)/bin:$PATH" && export LDFLAGS="-L$(brew --prefix openssl)/lib" && export CPPFLAGS="-I$(brew --prefix openssl)/include" && export PKG_CONFIG_PATH="$(brew --prefix openssl)/lib/pkgconfig:$PKG_CONFIG_PATH" && pkg-config --modversion openssl
+      run: export PATH="$(brew --prefix openssl)/bin:$PATH" && echo $PATH && export LDFLAGS="-L$(brew --prefix openssl)/lib $LDFLAGS" && echo $LDFLAGS && export CPPFLAGS="-I$(brew --prefix openssl)/include $CPPFLAGS" && echo $CPPFLAGS && export PKG_CONFIG_PATH="$(brew --prefix openssl)/lib/pkgconfig:$PKG_CONFIG_PATH" && echo $PKG_CONFIG_PATH && pkg-config --modversion openssl
 
     - name: Create Build Environment
       env:
         CC: ${{matrix.config.cc}}
         CXX: ${{matrix.config.cxx}}
-        CPPFLAGS: "-I$(brew --prefix openssl)/include"
-        LDFLAGS: "-L$(brew --prefix openssl)/lib"
-        PKG_CONFIG_PATH: "$(brew --prefix openssl)/lib/pkgconfig:$PKG_CONFIG_PATH"
-        PATH: "$(brew --prefix openssl)/bin:$PATH"
       run: cmake -S . -B ${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build Tests
