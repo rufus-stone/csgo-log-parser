@@ -12,9 +12,9 @@ jobs:
     strategy:
       matrix:
         config:
-          - {name: ubuntu-gcc-9, os: ubuntu-latest, cc: gcc-9, cxx: g++-9}
-          - {name: ubuntu-clang-9, os: ubuntu-latest, cc: clang-9, cxx: clang++-9}
-          #- {name: mac-latest, os: macos-latest, cc: clang, cxx: clang++}
+          #- {name: ubuntu-gcc-9, os: ubuntu-latest, cc: gcc-9, cxx: g++-9}
+          #- {name: ubuntu-clang-9, os: ubuntu-latest, cc: clang-9, cxx: clang++-9}
+          - {name: mac-latest, os: macos-latest, cc: clang, cxx: clang++}
           #- {name: windows-latest, os: windows-latest, cc: cl, cxx: cl}
       fail-fast: false
 
@@ -24,16 +24,15 @@ jobs:
     - name: Prepare OpenSSL for Mac
       if: ${{matrix.config.name == 'mac-latest'}}
       run: |
-        echo "PATH=\"$(brew --prefix openssl)/bin:$PATH\"" >> $GITHUB_ENV
-        echo "LDFLAGS=\"-L$(brew --prefix openssl)/lib $LDFLAGS\"" >> $GITHUB_ENV
-        echo "CPPFLAGS=\"-I$(brew --prefix openssl)/include $CPPFLAGS\"" >> $GITHUB_ENV
-        echo "PKG_CONFIG_PATH=\"$(brew --prefix openssl)/lib/pkgconfig\"" >> $GITHUB_ENV
+        rm -rf /usr/local/Cellar/openssl
+        ln -sf /usr/local/Cellar/openssl@1.1/1.1.1g /usr/local/opt/openssl
+        ln -sf /usr/local/Cellar/openssl@1.1/1.1.1g/bin/openssl /usr/local/bin/openssl
 
     - name: Create Build Environment
       env:
         CC: ${{matrix.config.cc}}
         CXX: ${{matrix.config.cxx}}
-      run: echo $LDFLAGS && cmake -S . -B ${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: cmake -S . -B ${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build Tests
       working-directory: ${{runner.workspace}}
