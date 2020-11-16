@@ -68,8 +68,43 @@ Because CS:GO server logs use a player's Steam ID to differentiate between playe
 }
 ```
 
-The config above will ensure that, should csgoparse process a server log line containing references to Steam ID "STEAM_1:0:12345678", it will replace this with the name "Alice" when generating output JSON. Likewise, "STEAM_1:1:87654321" will be translated to "Bob". The `"active"` setting can be changed to `false` in order to disable the Steam ID translation functionality.
+The config above will ensure that, should csgoparse process a server log line containing references to Steam ID "STEAM_1:0:12345678", it will replace this with the name "Alice" when generating output JSON. Likewise, "STEAM_1:1:87654321" will be translated to "Bob". Any other Steam IDs will remain unchanged. The `"active"` setting can be changed to `false` in order to disable the Steam ID translation functionality.
+
+Alternatively, rather than providing per-Steam ID name translation, you can opt to use a hash of the Steam ID instead (MD5, SHA1, and SHA256 are currently supported). For example:
+
+```json
+{
+  "log_dir": "/home/somebody/csgo/server/logs",
+  "steam_id_translation": {
+    "active": true,
+    "hash": "md5"
+  }
+}
+```
+
+The config above will replace all Steam IDs with their MD5 hash (replace "md5" with "sha1" or "sha256" to use those hashing algorithms).
+
+You can also mix and match hashes with per-Steam ID translations if you wish - csgoparse will use the specified translation if one exists for a given Steam ID, but will fall back on the hash if no translation is found. For example:
+
+```json
+{
+  "log_dir": "/home/somebody/csgo/server/logs",
+  "steam_id_translation": {
+    "active": true,
+    "hash": "sha1",
+    "translations": {
+      "STEAM_1:0:12345678": "Alice",
+      "STEAM_1:1:87654321": "Bob"
+    }
+  }
+}
+```
+
+The config above will ensure that, should csgoparse process a server log line containing references to Steam ID "STEAM_1:0:12345678", it will replace this with the name "Alice" when generating output JSON. Likewise, "STEAM_1:1:87654321" will be translated to "Bob". All other Steam IDs will be replaced with their SHA1 hash.
+
 
 ## CS:GO server configuration
 
 csgoparse currently expects CS:GO server logs to be created using the maximum logging verbosity level
+
+- TODO: Allow for varying levels of server log verbosity
