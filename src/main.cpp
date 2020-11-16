@@ -21,6 +21,7 @@ static constexpr auto usage =
     -d <path>, --log_dir <path> Path to the directory containing the CS:GO game logs. This will override the path specified (if any) in the config.json.
     -t, --test                  Perform a dry run to test log parsing, without dispatching any events to, e.g. elasticsearch
     -i, --ignore                Ignore Steam ID -> Name translations.
+    -H <algo>, --hash <algo>    Enable Steam ID -> Hash translations using the specified hashing algorithm (must be one of: md5, sha1, sha256)
 )";
 
 
@@ -80,10 +81,27 @@ int main(int argc, char const **argv)
   auto const test_run = args["--test"].asBool();
   config_json["simulate"] = test_run;
 
-  // Are we ignoring Steam ID => translations? - override the config if so
+  // Are we ignoring Steam ID => Name translations? - override the config if so
   if (args["--ignore"].asBool() == true)
   {
+    spdlog::info("Ignoring Steam ID translations");
     config_json["steam_id_translation"]["active"] = false;
+  }
+
+  // Force a particular Steam ID => Hash translation? - override the config if so
+  if (args["--hash"].isString())
+  {
+    auto const hash_type = args["--hash"].asString();
+
+    if (hash_type == "md5" || hash_type == "sha1" || hash_type == "sha256")
+    {
+      spdlog::info("Enabled Steam ID -> Hash translation ({})", hash_type);
+      config_json["steam_id_translation"]["hash"] = hash_type;
+    } else
+    {
+      spdlog::error("Invalid hash type specified: \"{}\" - must be one of: \"md5\", \"sha1\", \"sha256\"!", hash_type);
+      return EXIT_FAILURE;
+    }
   }
 
   // Create the csgoparser and begin!
