@@ -28,13 +28,13 @@ private:
 
 public:
   reader() = delete;
-  reader(const std::filesystem::path &log_dir);
+  reader(std::filesystem::path const &log_dir);
   ~reader() = default;
 
   auto get_latest_bundle(std::streamoff offset) const -> bundle;
 };
 
-reader::reader(const std::filesystem::path &log_dir)
+reader::reader(std::filesystem::path const &log_dir)
 {
   // Does the path actually exist/can we see it?
   if (!std::filesystem::exists(log_dir))

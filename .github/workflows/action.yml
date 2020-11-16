@@ -12,9 +12,9 @@ jobs:
     strategy:
       matrix:
         config:
-          #- {name: ubuntu-gcc-9, os: ubuntu-latest, cc: gcc-9, cxx: g++-9}
-          #- {name: ubuntu-clang-9, os: ubuntu-latest, cc: clang-9, cxx: clang++-9}
-          - {name: mac-latest, os: macos-latest, cc: clang, cxx: clang++}
+          - {name: ubuntu-gcc-9, os: ubuntu-latest, cc: gcc-9, cxx: g++-9}
+          - {name: ubuntu-clang-9, os: ubuntu-latest, cc: clang-9, cxx: clang++-9}
+          #- {name: mac-latest, os: macos-latest, cc: clang, cxx: clang++}  # This doesn't like Catch2 for some reason
           #- {name: windows-latest, os: windows-latest, cc: cl, cxx: cl}
       fail-fast: false
 

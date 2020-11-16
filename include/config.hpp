@@ -22,7 +22,7 @@ using namespace std::string_view_literals;
 constexpr auto default_config = R"###({"log_dir":null})###"sv;
 
 ////////////////////////////////////////////////////////////////
-auto locate_config(const std::filesystem::path &custom_path = std::filesystem::path{}) -> std::filesystem::path
+auto locate_config(std::filesystem::path const &custom_path = std::filesystem::path{}) -> std::filesystem::path
 {
   auto config_path = std::filesystem::path{};
 
@@ -56,7 +56,7 @@ auto locate_config(const std::filesystem::path &custom_path = std::filesystem::p
     try
     {
       std::filesystem::create_directories(config_path.parent_path());
-    } catch (const std::filesystem::filesystem_error &e)
+    } catch (std::filesystem::filesystem_error const &e)
     {
       spdlog::error(e.what());
       return std::filesystem::path{};
@@ -74,7 +74,7 @@ auto locate_config(const std::filesystem::path &custom_path = std::filesystem::p
 
 
 ////////////////////////////////////////////////////////////////
-auto load_config(const std::filesystem::path &custom_path = std::filesystem::path{}) -> json
+auto load_config(std::filesystem::path const &custom_path = std::filesystem::path{}) -> json
 {
   auto const path = locate_config(custom_path);
 
@@ -89,7 +89,7 @@ auto load_config(const std::filesystem::path &custom_path = std::filesystem::pat
 
   // Open the config file
   auto config = std::ifstream{path};
-  
+
   try
   {
     auto const config_json = json::parse(config);

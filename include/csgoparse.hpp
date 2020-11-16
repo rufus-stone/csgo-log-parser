@@ -6,6 +6,7 @@
 #include <regex>
 
 #include <spdlog/spdlog.h>
+#include <hamarr/crypto.hpp>
 
 #include "nlohmann/json.hpp"
 #include "logfile/reader.hpp"
@@ -58,21 +59,21 @@ public:
   csgoparser(const json &cfg, const json &geo);
   ~csgoparser() = default;
 
-  auto translate_steam_id(const std::string &input) -> std::string;
+  auto translate_steam_id(std::string const &input) -> std::string;
 
-  auto parse_match_start(const std::string &input) -> bool;
-  auto parse_switched_teams(const std::string &input) -> bool;
-  auto parse_attack(const std::string &input) -> bool;
-  auto parse_kill(const std::string &input) -> bool;
-  auto parse_assist(const std::string &input) -> bool;
-  auto parse_blinded(const std::string &input) -> bool;
-  auto parse_suicide(const std::string &input) -> bool;
-  auto parse_bomb(const std::string &input) -> bool;
-  auto parse_hostage(const std::string &input) -> bool;
-  auto parse_chicken(const std::string &input) -> bool;
-  auto parse_game_over(const std::string &input) -> json;
+  auto parse_match_start(std::string const &input) -> bool;
+  auto parse_switched_teams(std::string const &input) -> bool;
+  auto parse_attack(std::string const &input) -> bool;
+  auto parse_kill(std::string const &input) -> bool;
+  auto parse_assist(std::string const &input) -> bool;
+  auto parse_blinded(std::string const &input) -> bool;
+  auto parse_suicide(std::string const &input) -> bool;
+  auto parse_bomb(std::string const &input) -> bool;
+  auto parse_hostage(std::string const &input) -> bool;
+  auto parse_chicken(std::string const &input) -> bool;
+  auto parse_game_over(std::string const &input) -> json;
 
-  auto parse_event(const std::string &input) -> json;
+  auto parse_event(std::string const &input) -> json;
   void track_stats();
 };
 
@@ -84,10 +85,11 @@ csgoparser::csgoparser(const json &cfg, const json &geo) : config(cfg), maps(geo
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::translate_steam_id(const std::string &input) -> std::string
+auto csgoparser::translate_steam_id(std::string const &input) -> std::string
 {
   if (this->config["steam_id_translation"]["translations"].contains(input))
   {
+    //return hmr::crypto::md5(input);
     return this->config["steam_id_translation"]["translations"][input].get<std::string>();
   } else
   {
@@ -97,7 +99,7 @@ auto csgoparser::translate_steam_id(const std::string &input) -> std::string
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_match_start(const std::string &input) -> bool
+auto csgoparser::parse_match_start(std::string const &input) -> bool
 {
   if (auto match_start_m = std::smatch{}; std::regex_match(input, match_start_m, match_start_rgx))
   {
@@ -117,7 +119,7 @@ auto csgoparser::parse_match_start(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_switched_teams(const std::string &input) -> bool
+auto csgoparser::parse_switched_teams(std::string const &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, switched_team_rgx))
   {
@@ -150,7 +152,7 @@ auto csgoparser::parse_switched_teams(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_attack(const std::string &input) -> bool
+auto csgoparser::parse_attack(std::string const &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, attack_rgx))
   {
@@ -208,7 +210,7 @@ auto csgoparser::parse_attack(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_kill(const std::string &input) -> bool
+auto csgoparser::parse_kill(std::string const &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, killed_rgx))
   {
@@ -238,7 +240,7 @@ auto csgoparser::parse_kill(const std::string &input) -> bool
       {"distance", csgoprs::metres_between_points(player_pos, victim_pos)},
       {"weapon", weapon},
       {"game_map", this->game_state["game_map"]}};
-    
+
     // Add on any flair (noscope, headshot, revenge, etc.)
     if (!flair.empty())
     {
@@ -262,7 +264,7 @@ auto csgoparser::parse_kill(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_assist(const std::string &input) -> bool
+auto csgoparser::parse_assist(std::string const &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, assist_rgx))
   {
@@ -297,7 +299,7 @@ auto csgoparser::parse_assist(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_suicide(const std::string &input) -> bool
+auto csgoparser::parse_suicide(std::string const &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, suicide_rgx))
   {
@@ -326,7 +328,7 @@ auto csgoparser::parse_suicide(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_blinded(const std::string &input) -> bool
+auto csgoparser::parse_blinded(std::string const &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, blinded_rgx))
   {
@@ -363,7 +365,7 @@ auto csgoparser::parse_blinded(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_bomb(const std::string &input) -> bool
+auto csgoparser::parse_bomb(std::string const &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, bomb_rgx))
   {
@@ -393,7 +395,7 @@ auto csgoparser::parse_bomb(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_hostage(const std::string &input) -> bool
+auto csgoparser::parse_hostage(std::string const &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, hostage_rgx))
   {
@@ -423,7 +425,7 @@ auto csgoparser::parse_hostage(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_chicken(const std::string &input) -> bool
+auto csgoparser::parse_chicken(std::string const &input) -> bool
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, chicken_rgx))
   {
@@ -454,7 +456,7 @@ auto csgoparser::parse_chicken(const std::string &input) -> bool
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_game_over(const std::string &input) -> json
+auto csgoparser::parse_game_over(std::string const &input) -> json
 {
   if (auto match = std::smatch{}; std::regex_match(input, match, game_over_rgx))
   {
@@ -531,7 +533,7 @@ auto csgoparser::parse_game_over(const std::string &input) -> json
     }
 
     // Now update all the buffered events with the game mode that was just played, and perform any Steam ID -> Name translations (if enabled)
-    const bool translate = this->config.contains("steam_id_translation") && this->config["steam_id_translation"]["active"] ? true : false;
+    bool const translate = this->config.contains("steam_id_translation") && this->config["steam_id_translation"]["active"] ? true : false;
 
     for (auto &buffered_event : this->game_state["event_buffer"])
     {
@@ -562,7 +564,7 @@ auto csgoparser::parse_game_over(const std::string &input) -> json
 
 
 ////////////////////////////////////////////////////////////////
-auto csgoparser::parse_event(const std::string &input) -> json
+auto csgoparser::parse_event(std::string const &input) -> json
 {
   // Match start - use this to set the current game map
   if (parse_match_start(input))
@@ -630,7 +632,7 @@ auto csgoparser::parse_event(const std::string &input) -> json
   {
     return game_over;
   }
-  
+
   // Or did nothing match?
   return json{};
 }

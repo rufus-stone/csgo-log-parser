@@ -67,10 +67,8 @@ TEST_CASE("Game 1", "[competitive][cs_agency]")
   REQUIRE(csgo.game_state["game_mode"] == "competitive");
 
   // Lambda to check if a given player is on a given team
-  auto is_member_of_team = [&csgo](auto const &player, auto const &team) -> bool
-  {
-    auto pos = std::find_if(std::begin(csgo.game_state["teams"][team]), std::end(csgo.game_state["teams"][team]), [&player](const json &team_member)
-    {
+  auto is_member_of_team = [&csgo](auto const &player, auto const &team) -> bool {
+    auto pos = std::find_if(std::begin(csgo.game_state["teams"][team]), std::end(csgo.game_state["teams"][team]), [&player](const json &team_member) {
       return team_member["player"] == player;
     });
 
@@ -95,13 +93,12 @@ TEST_CASE("Game 1", "[competitive][cs_agency]")
 }
 
 
-
 SCENARIO("Geo tests", "[geo][cs_agency][de_dust2]")
 {
   GIVEN("A game played on cs_agency")
   {
     auto const map_origin = csgoprs::geo::point{-2947.0, 2492.0};
-    auto const map_scale  = 5.0;
+    auto const map_scale = 5.0;
 
     WHEN(" a player is located at grid position -1290.0,-708.0")
     {
@@ -120,7 +117,7 @@ SCENARIO("Geo tests", "[geo][cs_agency][de_dust2]")
   GIVEN("A game played on de_dust2")
   {
     auto const map_origin = csgoprs::geo::point{-2476.0, 3239.0};
-    auto const map_scale  = 4.4;
+    auto const map_scale = 4.4;
 
     WHEN(" a player is located at grid position 1139.0,891.0")
     {

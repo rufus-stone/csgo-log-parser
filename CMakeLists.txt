@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15...3.18)
 # Set up our project
 project(
   csgoparse
-  VERSION 0.2.0
+  VERSION 0.2.1
   DESCRIPTION "A log parser for CS:GO server logs"
   HOMEPAGE_URL "https://github.com/rufus-stone/csgo-log-parser"
   LANGUAGES CXX)
@@ -50,7 +50,8 @@ if(NOT platform_folders_FOUND)
 
   # Prevent tests etc from being built
   if(IS_DIRECTORY "${platform_folders_SOURCE_DIR}")
-    set_property(DIRECTORY ${platform_folders_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
+    set_property(DIRECTORY ${platform_folders_SOURCE_DIR}
+                 PROPERTY EXCLUDE_FROM_ALL YES)
   endif()
 
   message("platform_folders_SOURCE_DIR: ${platform_folders_SOURCE_DIR}")
