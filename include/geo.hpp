@@ -39,7 +39,7 @@ constexpr auto initial_resolution = (2.0 * M_PI * earth_radius) / tile_size; // 
 // Resolution (metres/pixel) for the given zoom level (measured at Equator)
 auto resolution(std::size_t zoom) -> double
 {
-    return initial_resolution / std::pow(2, zoom);
+  return initial_resolution / std::pow(2, zoom);
 }
 
 auto pixels_to_metres(csgoprs::geo::point pixels, std::size_t zoom) -> csgoprs::geo::point
@@ -101,15 +101,15 @@ auto pos_to_lat_lon(std::string_view pos, std::string const &game_map, json cons
     }
 
     // We only care about the X and Y components of the CS:GO grid position for mapping purposes
-    auto const pos_x  = static_cast<double>(std::stoi(player_xyz[0].data()));
-    auto const pos_y  = static_cast<double>(std::stoi(player_xyz[1].data()));
+    auto const pos_x = static_cast<double>(std::stoi(player_xyz[0].data()));
+    auto const pos_y = static_cast<double>(std::stoi(player_xyz[1].data()));
     auto const pos_xy = csgoprs::geo::point{pos_x, pos_y};
 
-    auto const map_origin_x  = static_cast<double>(map_json["maps"][game_map]["pos_x"].get<int>());
-    auto const map_origin_y  = static_cast<double>(map_json["maps"][game_map]["pos_y"].get<int>());
+    auto const map_origin_x = static_cast<double>(map_json["maps"][game_map]["pos_x"].get<int>());
+    auto const map_origin_y = static_cast<double>(map_json["maps"][game_map]["pos_y"].get<int>());
     auto const map_origin_xy = csgoprs::geo::point{map_origin_x, map_origin_y};
 
-    auto const map_scale  = map_json["maps"][game_map]["scale"].get<double>();
+    auto const map_scale = map_json["maps"][game_map]["scale"].get<double>();
 
     auto const [lat, lon] = xy_to_lat_lon(pos_xy, map_origin_xy, map_scale);
 
@@ -118,13 +118,13 @@ auto pos_to_lat_lon(std::string_view pos, std::string const &game_map, json cons
     ss << std::fixed << std::setprecision(2) << lat << "," << lon;
     return ss.str();
   }
-  
+
   return "0.00,0.00";
 }
 
 
 ////////////////////////////////////////////////////////////////
-auto locate_map_details(const std::filesystem::path &custom_path = std::filesystem::path{}) -> std::filesystem::path
+auto locate_map_details(std::filesystem::path const &custom_path = std::filesystem::path{}) -> std::filesystem::path
 {
   auto map_geo_path = std::filesystem::path{};
 
@@ -158,7 +158,7 @@ auto locate_map_details(const std::filesystem::path &custom_path = std::filesyst
     try
     {
       std::filesystem::create_directories(map_geo_path.parent_path());
-    } catch (const std::filesystem::filesystem_error &e)
+    } catch (std::filesystem::filesystem_error const &e)
     {
       spdlog::error(e.what());
       return std::filesystem::path{};
@@ -176,7 +176,7 @@ auto locate_map_details(const std::filesystem::path &custom_path = std::filesyst
 
 
 ////////////////////////////////////////////////////////////////
-auto load_map_geo(const std::filesystem::path &custom_path = std::filesystem::path{}) -> json
+auto load_map_geo(std::filesystem::path const &custom_path = std::filesystem::path{}) -> json
 {
   auto const path = locate_map_details(custom_path);
 
