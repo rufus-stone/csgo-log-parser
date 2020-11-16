@@ -153,7 +153,7 @@ auto csgoparser::parse_switched_teams(std::string const &log_line) -> bool
   if (auto match = std::smatch{}; std::regex_match(log_line, match, switched_team_rgx))
   {
     auto player = match[1].str();
-    auto player_id = match[2].str();
+    auto player_id = this->translate_steam_id(match[2].str());
     auto player_team = match[3].str();
 
     auto const player_json = json{{"player", player}, {"player_id", player_id}};
@@ -187,11 +187,11 @@ auto csgoparser::parse_attack(std::string const &log_line) -> bool
   {
     auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
     auto player = match[2].str();
-    auto player_id = match[3].str();
+    auto player_id = this->translate_steam_id(match[3].str());
     auto player_team = match[4].str();
     auto player_pos = match[5].str();
     auto victim = match[6].str();
-    auto victim_id = match[7].str();
+    auto victim_id = this->translate_steam_id(match[7].str());
     auto victim_team = match[8].str();
     auto victim_pos = match[9].str();
     auto weapon = match[10].str();
@@ -245,11 +245,11 @@ auto csgoparser::parse_kill(std::string const &log_line) -> bool
   {
     auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
     auto player = match[2].str();
-    auto player_id = match[3].str();
+    auto player_id = this->translate_steam_id(match[3].str());
     auto player_team = match[4].str();
     auto player_pos = match[5].str();
     auto victim = match[6].str();
-    auto victim_id = match[7].str();
+    auto victim_id = this->translate_steam_id(match[7].str());
     auto victim_team = match[8].str();
     auto victim_pos = match[9].str();
     auto weapon = match[10].str();
@@ -299,10 +299,10 @@ auto csgoparser::parse_assist(std::string const &log_line) -> bool
   {
     auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
     auto player = match[2].str();
-    auto player_id = match[3].str();
+    auto player_id = this->translate_steam_id(match[3].str());
     auto player_team = match[4].str();
     auto victim = match[5].str();
-    auto victim_id = match[6].str();
+    auto victim_id = this->translate_steam_id(match[6].str());
     auto victim_team = match[7].str();
 
     json event = {
@@ -334,7 +334,7 @@ auto csgoparser::parse_suicide(std::string const &log_line) -> bool
   {
     auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
     auto player = match[2].str();
-    auto player_id = match[3].str();
+    auto player_id = this->translate_steam_id(match[3].str());
     auto player_team = match[4].str();
 
     json event = {
@@ -363,11 +363,11 @@ auto csgoparser::parse_blinded(std::string const &log_line) -> bool
   {
     auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
     auto victim = match[2].str();
-    auto victim_id = match[3].str();
+    auto victim_id = this->translate_steam_id(match[3].str());
     auto victim_team = match[4].str();
     auto duration = match[5].str();
     auto player = match[6].str();
-    auto player_id = match[7].str();
+    auto player_id = this->translate_steam_id(match[7].str());
     auto player_team = match[8].str();
 
     json event = {
@@ -400,7 +400,7 @@ auto csgoparser::parse_bomb(std::string const &log_line) -> bool
   {
     auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
     auto player = match[2].str();
-    auto player_id = match[3].str();
+    auto player_id = this->translate_steam_id(match[3].str());
     auto player_team = match[4].str();
     auto bomb_action = match[5].str();
 
@@ -430,7 +430,7 @@ auto csgoparser::parse_hostage(std::string const &log_line) -> bool
   {
     auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
     auto player = match[2].str();
-    auto player_id = match[3].str();
+    auto player_id = this->translate_steam_id(match[3].str());
     auto player_team = match[4].str();
     auto hostage_action = match[5].str();
 
@@ -460,7 +460,7 @@ auto csgoparser::parse_chicken(std::string const &log_line) -> bool
   {
     auto epoch = csgoprs::dtg_to_epoch_millis(match[1].str());
     auto player = match[2].str();
-    auto player_id = match[3].str();
+    auto player_id = this->translate_steam_id(match[3].str());
     auto player_team = match[4].str();
     auto weapon = match[5].str();
 
@@ -545,7 +545,7 @@ auto csgoparser::parse_game_over(std::string const &log_line) -> json
           this->game_state["event_buffer"].push_back(win_event);
         }
 
-        // Now add the losers
+        // Add the losers
         for (auto const &player : this->game_state["teams"][losing_team])
         {
           json lose_event = {
@@ -561,29 +561,13 @@ auto csgoparser::parse_game_over(std::string const &log_line) -> json
       }
     }
 
-    // Now update all the buffered events with the game mode that was just played, and perform any Steam ID -> Name translations (if enabled)
-    bool const translate = this->config.contains("steam_id_translation") && this->config["steam_id_translation"]["active"] ? true : false;
-
+    // Update all the buffered events with the game mode that was just played
     for (auto &buffered_event : this->game_state["event_buffer"])
     {
       buffered_event["game_mode"] = game_mode;
-
-      // Perform Steam ID translations
-      if (translate)
-      {
-        if (buffered_event.contains("player_id"))
-        {
-          buffered_event["player_id"] = this->translate_steam_id(buffered_event["player_id"]); //.get<std::string>());
-        }
-
-        if (buffered_event.contains("victim_id"))
-        {
-          buffered_event["victim_id"] = this->translate_steam_id(buffered_event["victim_id"]); //.get<std::string>());
-        }
-      }
     }
 
-    // Now that the match is over, return the event buffer (this will get cleared when the next match begins)
+    // Finally, now that the match is over, return the event buffer (this will get cleared when the next match begins)
     return this->game_state["event_buffer"];
   } else
   {
