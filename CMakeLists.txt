@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15...3.18)
 # Set up our project
 project(
   csgoparse
-  VERSION 0.2.1
+  VERSION 0.3.0
   DESCRIPTION "A log parser for CS:GO server logs"
   HOMEPAGE_URL "https://github.com/rufus-stone/csgo-log-parser"
   LANGUAGES CXX)
@@ -131,6 +131,27 @@ if(NOT spdlog_FOUND)
   message("spdlog_SOURCE_DIR: ${spdlog_SOURCE_DIR}")
 endif()
 
+# Find the cpr library
+find_package(cpr QUIET)
+if(NOT cpr_FOUND)
+  message("Failed to find cpr! Fetching it instead...")
+
+  # Get a specific release of cpr (881618a097d3359d752d17d7eff9f7377624e1fe)
+  FetchContent_Declare(
+    cpr
+    GIT_REPOSITORY https://github.com/whoshuu/cpr.git
+    GIT_TAG 881618a097d3359d752d17d7eff9f7377624e1fe)
+
+  FetchContent_MakeAvailable(cpr)
+
+  # Prevent tests etc from being built
+  if(IS_DIRECTORY "${cpr_SOURCE_DIR}")
+    set_property(DIRECTORY ${cpr_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
+  endif()
+
+  message("cpr_SOURCE_DIR: ${cpr_SOURCE_DIR}")
+endif()
+
 # Add the include directory and external directory to the target
 target_include_directories(
   ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include
@@ -139,10 +160,11 @@ target_include_directories(
 # Link libraries to executable
 target_link_libraries(
   ${PROJECT_NAME} PRIVATE docopt spdlog::spdlog sago::platform_folders
-                          hamarr::hamarr)
+                          hamarr::hamarr cpr::cpr)
 
 include(CTest) # This adds the BUILD_TESTING option (ON by default)
-if(BUILD_TESTING)
-  enable_testing()
-  add_subdirectory(test ${PROJECT_BUILD_DIR})
-endif()
+message("BUILD_TESTING: ${BUILD_TESTING}")
+# WHY IS THIS NOT WORKING? if(BUILD_TESTING)
+enable_testing()
+add_subdirectory(test ${PROJECT_BUILD_DIR})
+# endif()

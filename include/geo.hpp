@@ -1,8 +1,8 @@
 #pragma once
 
-#include <fstream> // For file i/o
+#include <fstream>    // For file i/o
 #include <filesystem> // For filesystem stuff
-#include <cstdlib> // For getting the path to the home directory
+#include <cstdlib>    // For getting the path to the home directory
 #include <cmath>
 #include <string>
 #include <string_view>
@@ -147,7 +147,7 @@ auto locate_map_details(std::filesystem::path const &custom_path = std::filesyst
     map_geo_path = map_geo_path / "csgoparse" / "maps.json";
   }
 
-  spdlog::info("Looking for map geo file at: {}", map_geo_path.string());
+  spdlog::debug("Looking for map geo file at: {}", map_geo_path.string());
 
   // Check if the path exists
   if (!std::filesystem::exists(map_geo_path))
@@ -200,7 +200,7 @@ auto load_map_geo(std::filesystem::path const &custom_path = std::filesystem::pa
       map_geo.close();
     }
 
-    spdlog::info("Loaded map geo from file:\n{}", map_geo_json.dump(2));
+    spdlog::debug("Loaded map geo from file:\n{}", map_geo_json.dump(2));
 
     return map_geo_json;
 

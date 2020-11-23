@@ -1,8 +1,8 @@
 #pragma once
 
-#include <fstream> // For file i/o
+#include <fstream>    // For file i/o
 #include <filesystem> // For filesystem stuff
-#include <cstdlib> // For getting the path to the home directory
+#include <cstdlib>    // For getting the path to the home directory
 
 #include <string>
 #include <string_view>
@@ -45,7 +45,7 @@ auto locate_config(std::filesystem::path const &custom_path = std::filesystem::p
     config_path = config_path / "csgoparse" / "config.json";
   }
 
-  spdlog::info("Looking for config file at: {}", config_path.string());
+  spdlog::debug("Looking for config file at: {}", config_path.string());
 
   // Check if the path exists
   if (!std::filesystem::exists(config_path))
@@ -100,7 +100,7 @@ auto load_config(std::filesystem::path const &custom_path = std::filesystem::pat
       config.close();
     }
 
-    spdlog::info("Loaded config from file:\n{}", config_json.dump(2));
+    spdlog::debug("Loaded config from file:\n{}", config_json.dump(2));
 
     return config_json;
 

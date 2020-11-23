@@ -48,7 +48,6 @@ TEST_CASE("Standard Config", "[competitive][cs_agency]")
   auto lines = load_sample_log(csgoprs::log_samples::competitive_cs_agency);
 
   // Play back the logs and parse the events
-  std::size_t i = 0;
   for (auto const &log_line : lines)
   {
     csgo.parse_event(log_line);
@@ -111,7 +110,6 @@ TEST_CASE("Steam ID -> Hash translation", "[competitive][cs_agency]")
   auto lines = load_sample_log(csgoprs::log_samples::competitive_cs_agency);
 
   // Play back the logs and parse the events
-  std::size_t i = 0;
   for (auto const &log_line : lines)
   {
     csgo.parse_event(log_line);

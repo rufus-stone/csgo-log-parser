@@ -4,6 +4,7 @@
 #include <thread>
 #include <string>
 #include <regex>
+#include <memory>
 
 #include <spdlog/spdlog.h>
 #include <hamarr/crypto.hpp>
@@ -13,6 +14,7 @@
 
 #include "utils.hpp"
 #include "geo.hpp"
+#include "elasticsearch.hpp"
 
 
 namespace csgoprs
@@ -54,6 +56,7 @@ private:
 
 public:
   json game_state;
+  std::unique_ptr<csgoprs::es::client> es_client;
 
   csgoparser() = delete;
   csgoparser(json const &cfg, json const &geo);
@@ -80,50 +83,94 @@ public:
 ////////////////////////////////////////////////////////////////
 csgoparser::csgoparser(json const &cfg, json const &geo) : config(cfg), maps(geo), log_reader(config["log_dir"].get<std::string>()), game_state(json{}), simulate(config["simulate"].get<bool>())
 {
-  spdlog::info("Active config:\n{}", config.dump(2));
+  spdlog::debug("Active config:\n{}", this->config.dump(2));
+
+  // Only set up elasticsearch if we're NOT simulating
+  if (this->simulate == false)
+  {
+    if (this->config.contains("elasticsearch"))
+    {
+      this->es_client = std::make_unique<csgoprs::es::client>(this->config["elasticsearch"]);
+
+      if (this->es_client->ping().status_code != 200)
+      {
+        spdlog::warn("Unable to establish connection to Elasticsearch endpoint!");
+      } else
+      {
+        spdlog::info("Established connection to Elasticsearch.");
+      }
+
+
+      // TESTING
+      //this->es_client->get_indices();
+      //this->es_client->create_index_with_mappings(csgoprs::es::csgo_mappings);
+      //this->es_client->get_indices();
+      //this->es_client->delete_index();
+      //this->es_client->get_indices();
+    }
+  } else
+  {
+    spdlog::info("Running simulation only...");
+  }
 }
 
 
 ////////////////////////////////////////////////////////////////
 auto csgoparser::translate_steam_id(json const &steam_id) -> std::string
 {
-  bool const do_hash = this->config["steam_id_translation"].contains("hash");
-  bool const do_trns = this->config["steam_id_translation"].contains("translations");
-
   auto const steam_id_str = steam_id.get<std::string>();
 
-  // Are we doing per-Steam ID name translation?
-  if (do_trns)
+  // Are any Steam ID translations specified and active?
+  if (this->config.contains("steam_id_translation"))
   {
-    // Is this Steam ID in the translation table?
-    if (this->config["steam_id_translation"]["translations"].contains(steam_id_str))
+    if (this->config["steam_id_translation"].contains("active"))
     {
-      return this->config["steam_id_translation"]["translations"][steam_id_str].get<std::string>();
+      if (this->config["steam_id_translation"]["active"] == false)
+      {
+        return steam_id_str;
+      }
     }
-  }
 
-  // Are we doing hashes?
-  if (do_hash)
+    bool const do_hash = this->config["steam_id_translation"].contains("hash");
+    bool const do_trns = this->config["steam_id_translation"].contains("translations");
+
+    // Are we doing per-Steam ID name translation?
+    if (do_trns)
+    {
+      // Is this Steam ID in the translation table?
+      if (this->config["steam_id_translation"]["translations"].contains(steam_id_str))
+      {
+        return this->config["steam_id_translation"]["translations"][steam_id_str].get<std::string>();
+      }
+    }
+
+    // Are we doing hashes?
+    if (do_hash)
+    {
+      // What kind of hash?
+      auto const hash_type = this->config["steam_id_translation"]["hash"].get<std::string>();
+
+      if (hash_type == "md5")
+      {
+        return hmr::crypto::md5(steam_id_str);
+
+      } else if (hash_type == "sha1")
+      {
+        return hmr::crypto::sha1(steam_id_str);
+
+      } else if (hash_type == "sha256")
+      {
+        return hmr::crypto::sha256(steam_id_str);
+      }
+    }
+
+    // If we get this far then the Steam ID wasn't in the translation table and we aren't doing hashes (or an invalid hash type was specified), so return the Steam ID un-changed
+    return steam_id_str;
+
+  } else
   {
-    // What kind of hash?
-    auto const hash_type = this->config["steam_id_translation"]["hash"].get<std::string>();
-
-    if (hash_type == "md5")
-    {
-      return hmr::crypto::md5(steam_id_str);
-
-    } else if (hash_type == "sha1")
-    {
-      return hmr::crypto::sha1(steam_id_str);
-
-    } else if (hash_type == "sha256")
-    {
-      return hmr::crypto::sha256(steam_id_str);
-    }
+    return steam_id_str;
   }
-
-  // If we get this far then the Steam ID wasn't in the translation table and we aren't doing hashes (or an invalid hash type was specified), so return the Steam ID un-changed
-  return steam_id_str;
 }
 
 
@@ -679,6 +726,9 @@ void csgoparser::track_stats()
               spdlog::info(event.dump());
             }
           }
+
+          // Or we could dispatch them in bulk here?
+          this->es_client->index_bulk_events(events);
         }
       }
     }

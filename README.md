@@ -1,5 +1,7 @@
 # csgo-log-parser
 
+![Build and Test](https://github.com/rufus-stone/csgo-log-parser/workflows/Build%20and%20Test/badge.svg)
+
 A log parser for Counter Strike: Global Offensive
 
 ## Motivation
@@ -37,6 +39,8 @@ If these are not already installed on your system, CMake will fetch them from Gi
 
 csgoparse loads settings from a config.json file, which, if necessary, it creates the first time the program runs.
 
+### Barebones
+
 The barebones config.json looks like this:
 
 ```json
@@ -53,6 +57,8 @@ Out of the box, this requires modification by the user to tell csgoparse which d
 }
 ```
 
+### Steam ID translation
+
 Because CS:GO server logs use a player's Steam ID to differentiate between players, and because a player can freely change their display name in-game, csgoparse also uses the Steam ID to identify players when tracking stats. However, should you wish, you can tell csgoparse to translate specific Steam IDs into some other text, as this may make player-specific searches in programs like Elasticsearch/Kibana easier. In this way, it does not matter whether a player changes their in-game display name, csgoparse will continue to track their stats via their Steam ID, but output events containing whatever alternative name you specified in the config.json file. For example:
 
 ```json
@@ -68,43 +74,26 @@ Because CS:GO server logs use a player's Steam ID to differentiate between playe
 }
 ```
 
-The config above will ensure that, should csgoparse process a server log line containing references to Steam ID "STEAM_1:0:12345678", it will replace this with the name "Alice" when generating output JSON. Likewise, "STEAM_1:1:87654321" will be translated to "Bob". Any other Steam IDs will remain unchanged. The `"active"` setting can be changed to `false` in order to disable the Steam ID translation functionality.
+The config above will ensure that, should csgoparse process a server log line containing references to Steam ID "STEAM_1:0:12345678", it will replace this with the name "Alice" when generating output JSON. Likewise, "STEAM_1:1:87654321" will be translated to "Bob". The `"active"` setting can be changed to `false` in order to disable the Steam ID translation functionality.
 
-Alternatively, rather than providing per-Steam ID name translation, you can opt to use a hash of the Steam ID instead (MD5, SHA1, and SHA256 are currently supported). For example:
+### Elasticsearch setup -- WORK IN PROGRESS !!
 
-```json
-{
-  "log_dir": "/home/somebody/csgo/server/logs",
-  "steam_id_translation": {
-    "active": true,
-    "hash": "md5"
-  }
-}
-```
-
-The config above will replace all Steam IDs with their MD5 hash (replace "md5" with "sha1" or "sha256" to use those hashing algorithms).
-
-You can also mix and match hashes with per-Steam ID translations if you wish - csgoparse will use the specified translation if one exists for a given Steam ID, but will fall back on the hash if no translation is found. For example:
+You can configure csgoparse to connect to an elasticsearch instance of your choosing. For example:
 
 ```json
 {
   "log_dir": "/home/somebody/csgo/server/logs",
-  "steam_id_translation": {
-    "active": true,
-    "hash": "sha1",
-    "translations": {
-      "STEAM_1:0:12345678": "Alice",
-      "STEAM_1:1:87654321": "Bob"
-    }
+  "elasticsearch": {
+    "cloud_id": "<your elastic cloud_id>",
+    "port": 9243,
+    "username": "<your elasticsearch username>",
+    "password": "<your elasticsearch password>",
+    "index": "<elasticsearch index name>"
   }
 }
 ```
-
-The config above will ensure that, should csgoparse process a server log line containing references to Steam ID "STEAM_1:0:12345678", it will replace this with the name "Alice" when generating output JSON. Likewise, "STEAM_1:1:87654321" will be translated to "Bob". All other Steam IDs will be replaced with their SHA1 hash.
 
 
 ## CS:GO server configuration
 
 csgoparse currently expects CS:GO server logs to be created using the maximum logging verbosity level
-
-- TODO: Allow for varying levels of server log verbosity

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <fstream> // For file i/o
+#include <fstream>    // For file i/o
 #include <filesystem> // For filesystem stuff
-#include <cstdlib> // For getting the path to the home directory
+#include <cstdlib>    // For getting the path to the home directory
 
 #include <string>
 #include <vector>
@@ -69,7 +69,7 @@ reader::reader(std::filesystem::path const &log_dir)
 
   // Sort the files by name descending in order to find the most recent log file (CS:GO log files include the date at the start of the filename)
   std::sort(std::begin(files), std::end(files), std::greater<>());
-  spdlog::info("Most recent log file: {} ", files[0].string());
+  spdlog::debug("Most recent log file: {} ", files[0].string());
 
   this->log_path = files[0];
 }
@@ -107,7 +107,7 @@ auto reader::get_latest_bundle(std::streamoff start_position) const -> bundle
     // Don't do anything unless the file has grown since the last run
     if (start_position == file_length)
     {
-      spdlog::info("Waiting for new data...");
+      spdlog::debug("Waiting for new data...");
       return bundle{lines, start_position};
     }
 
