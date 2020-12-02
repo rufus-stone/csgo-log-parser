@@ -62,6 +62,7 @@ private:
   auto get(cpr::Url url) -> cpr::Response;
   auto post(cpr::Url url, cpr::Payload payload) -> cpr::Response;
   auto post(cpr::Url url, cpr::Body body) -> cpr::Response;
+  auto put(cpr::Url url) -> cpr::Response;
   auto put(cpr::Url url, cpr::Payload payload) -> cpr::Response;
   auto put(cpr::Url url, cpr::Body body) -> cpr::Response;
   auto del(cpr::Url url) -> cpr::Response;
@@ -89,6 +90,10 @@ public:
 
   // Delete
   auto delete_index() -> cpr::Response;
+
+  // Misc
+  auto index_name() const -> std::string;
+  auto get_user_info(std::string const username = "") -> cpr::Response;
 };
 
 ////////////////////////////////////////////////////////////////
@@ -170,25 +175,31 @@ auto client::get(cpr::Url url) -> cpr::Response
 ////////////////////////////////////////////////////////////////
 auto client::post(cpr::Url url, cpr::Payload payload) -> cpr::Response
 {
-  return cpr::Post(url, payload, this->auth, cpr::VerifySsl{false});
+  return cpr::Post(url, payload, this->auth, cpr::VerifySsl{false}, cpr::Header{{"Content-Type", "application/json"}});
 }
 
 ////////////////////////////////////////////////////////////////
 auto client::post(cpr::Url url, cpr::Body body) -> cpr::Response
 {
-  return cpr::Post(url, body, this->auth, cpr::VerifySsl{false});
+  return cpr::Post(url, body, this->auth, cpr::VerifySsl{false}, cpr::Header{{"Content-Type", "application/json"}});
 }
 
 ////////////////////////////////////////////////////////////////
 auto client::put(cpr::Url url, cpr::Payload payload) -> cpr::Response
 {
-  return cpr::Put(url, payload, this->auth, cpr::VerifySsl{false});
+  return cpr::Put(url, payload, this->auth, cpr::VerifySsl{false}, cpr::Header{{"Content-Type", "application/json"}});
 }
 
 ////////////////////////////////////////////////////////////////
 auto client::put(cpr::Url url, cpr::Body body) -> cpr::Response
 {
-  return cpr::Put(url, body, this->auth, cpr::VerifySsl{false});
+  return cpr::Put(url, body, this->auth, cpr::VerifySsl{false}, cpr::Header{{"Content-Type", "application/json"}});
+}
+
+////////////////////////////////////////////////////////////////
+auto client::put(cpr::Url url) -> cpr::Response
+{
+  return cpr::Put(url, this->auth, cpr::VerifySsl{false}, cpr::Header{{"Content-Type", "application/json"}});
 }
 
 ////////////////////////////////////////////////////////////////
@@ -209,9 +220,6 @@ auto client::ping() -> cpr::Response
 {
   auto r = this->get(this->endpoint);
 
-  spdlog::debug(r.status_code);
-  spdlog::debug(r.text);
-
   return r;
 }
 
@@ -219,7 +227,7 @@ auto client::ping() -> cpr::Response
 ////////////////////////////////////////////////////////////////
 auto client::create_index_with_mappings(json index_mappings) -> cpr::Response
 {
-  auto r = this->put(this->endpoint + this->index, cpr::Body{index_mappings.dump(2)});
+  auto r = this->put(this->endpoint + this->index, cpr::Body{index_mappings.dump(2)}); // THIS DOESN'T WORK??? We need to create a user with admin privs on our ES cluster (XPack?)
 
   spdlog::debug(r.status_code);
   spdlog::debug(r.text);
@@ -285,6 +293,7 @@ auto client::index_exists() -> cpr::Response
   return r;
 }
 
+
 ////////////////////////////////////////////////////////////////
 auto client::delete_index() -> cpr::Response
 {
@@ -292,6 +301,34 @@ auto client::delete_index() -> cpr::Response
 
   spdlog::debug(r.status_code);
   spdlog::debug(r.text);
+
+  return r;
+}
+
+
+////////////////////////////////////////////////////////////////
+auto client::index_name() const -> std::string
+{
+  return this->index;
+}
+
+
+////////////////////////////////////////////////////////////////
+auto client::get_user_info(std::string const username) -> cpr::Response
+{
+  auto url = cpr::Url{this->endpoint + "_security/user"};
+
+  if (!username.empty())
+  {
+    url = url + "/" + username;
+  }
+
+  url = url + "?pretty";
+
+  auto r = this->get(url);
+
+  spdlog::info(r.status_code);
+  spdlog::info(r.text);
 
   return r;
 }

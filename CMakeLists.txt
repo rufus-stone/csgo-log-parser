@@ -162,9 +162,13 @@ target_link_libraries(
   ${PROJECT_NAME} PRIVATE docopt spdlog::spdlog sago::platform_folders
                           hamarr::hamarr cpr::cpr)
 
+# For some reason, CPR sets BUILD_TESTING to OFF globally, so unset this
+# variable right at the end, in case we want to build our own tests
+unset(BUILD_TESTING CACHE)
+
 include(CTest) # This adds the BUILD_TESTING option (ON by default)
 message("BUILD_TESTING: ${BUILD_TESTING}")
-# WHY IS THIS NOT WORKING? if(BUILD_TESTING)
-enable_testing()
-add_subdirectory(test ${PROJECT_BUILD_DIR})
-# endif()
+if(BUILD_TESTING)
+  enable_testing()
+  add_subdirectory(test ${PROJECT_BUILD_DIR})
+endif()
